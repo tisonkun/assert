@@ -53,18 +53,6 @@ type TestingT interface {
 	FailNow()
 }
 
-// ComparisonAssertionFunc is a common function prototype when comparing two values.  Can be useful
-// for table driven tests.
-type ComparisonAssertionFunc func(TestingT, any, any, ...any) bool
-
-// ValueAssertionFunc is a common function prototype when validating a single value.  Can be useful
-// for table driven tests.
-type ValueAssertionFunc func(TestingT, any, ...any) bool
-
-// ErrorAssertionFunc is a common function prototype when validating an error value.  Can be useful
-// for table driven tests.
-type ErrorAssertionFunc func(TestingT, error, ...any) bool
-
 // Comparison is a custom function that returns true on success and false on failure
 type Comparison func() (success bool)
 
@@ -525,16 +513,14 @@ func Exactly(t TestingT, expected, actual any, msgAndArgs ...any) bool {
 }
 
 // NotNil asserts that the specified object is not nil.
-//
-//    assert.NotNil(t, err)
-func NotNil(t TestingT, object any, msgAndArgs ...any) bool {
+func (a *Assertions) NotNil(object any, msgAndArgs ...any) any {
 	if !isNil(object) {
-		return true
+		return nil
 	}
-	if h, ok := t.(tHelper); ok {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
-	return Fail(t, "Expected value not to be nil.", msgAndArgs...)
+	return a.Fail("Expected value not to be nil.", msgAndArgs...)
 }
 
 // containsKind checks if a specified kind in the slice of kinds.
@@ -571,16 +557,14 @@ func isNil(object any) bool {
 }
 
 // Nil asserts that the specified object is nil.
-//
-//    assert.Nil(t, err)
-func Nil(t TestingT, object any, msgAndArgs ...any) bool {
+func (a *Assertions) Nil(object any, msgAndArgs ...any) any {
 	if isNil(object) {
-		return true
+		return nil
 	}
-	if h, ok := t.(tHelper); ok {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
-	return Fail(t, fmt.Sprintf("Expected nil, but got: %#v", object), msgAndArgs...)
+	return a.Fail(fmt.Sprintf("Expected nil, but got: %#v", object), msgAndArgs...)
 }
 
 // isEmpty gets whether the specified object is considered empty or not.

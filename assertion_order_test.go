@@ -7,10 +7,10 @@ import (
 
 func TestIsIncreasing(t *testing.T) {
 	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
-	Nil(t, mockAssertion.IsIncreasing([]int{1, 2}))
-	Nil(t, mockAssertion.IsIncreasing([]int{1, 2, 3, 4, 5}))
-	NotNil(t, mockAssertion.IsIncreasing([]int{1, 1}))
-	NotNil(t, mockAssertion.IsIncreasing([]int{2, 1}))
+	New(t).Nil(mockAssertion.IsIncreasing([]int{1, 2}))
+	New(t).Nil(mockAssertion.IsIncreasing([]int{1, 2, 3, 4, 5}))
+	New(t).NotNil(mockAssertion.IsIncreasing([]int{1, 1}))
+	New(t).NotNil(mockAssertion.IsIncreasing([]int{2, 1}))
 
 	// Check error report
 	for _, currCase := range []struct {
@@ -34,17 +34,17 @@ func TestIsIncreasing(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
-		NotNil(t, outAssertion.IsIncreasing(currCase.collection))
+		New(t).NotNil(outAssertion.IsIncreasing(currCase.collection))
 		New(t).Contains(out.buf.String(), currCase.msg)
 	}
 }
 
 func TestIsNonIncreasing(t *testing.T) {
 	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
-	Nil(t, mockAssertion.IsNonIncreasing([]int{2, 1}))
-	Nil(t, mockAssertion.IsNonIncreasing([]int{5, 4, 4, 3, 2, 1}))
-	Nil(t, mockAssertion.IsNonIncreasing([]int{1, 1}))
-	NotNil(t, mockAssertion.IsNonIncreasing([]int{1, 2}))
+	New(t).Nil(mockAssertion.IsNonIncreasing([]int{2, 1}))
+	New(t).Nil(mockAssertion.IsNonIncreasing([]int{5, 4, 4, 3, 2, 1}))
+	New(t).Nil(mockAssertion.IsNonIncreasing([]int{1, 1}))
+	New(t).NotNil(mockAssertion.IsNonIncreasing([]int{1, 2}))
 
 	// Check error report
 	for _, currCase := range []struct {
@@ -68,17 +68,17 @@ func TestIsNonIncreasing(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
-		NotNil(t, outAssertion.IsNonIncreasing(currCase.collection))
+		New(t).NotNil(outAssertion.IsNonIncreasing(currCase.collection))
 		New(t).Contains(out.buf.String(), currCase.msg)
 	}
 }
 
 func TestIsDecreasing(t *testing.T) {
 	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
-	Nil(t, mockAssertion.IsDecreasing([]int{2, 1}))
-	Nil(t, mockAssertion.IsDecreasing([]int{5, 4, 3, 2, 1}))
-	NotNil(t, mockAssertion.IsDecreasing([]int{1, 1}))
-	NotNil(t, mockAssertion.IsDecreasing([]int{1, 2}))
+	New(t).Nil(mockAssertion.IsDecreasing([]int{2, 1}))
+	New(t).Nil(mockAssertion.IsDecreasing([]int{5, 4, 3, 2, 1}))
+	New(t).NotNil(mockAssertion.IsDecreasing([]int{1, 1}))
+	New(t).NotNil(mockAssertion.IsDecreasing([]int{1, 2}))
 
 	// Check error report
 	for _, currCase := range []struct {
@@ -102,17 +102,17 @@ func TestIsDecreasing(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
-		NotNil(t, outAssertion.IsDecreasing(currCase.collection))
+		New(t).NotNil(outAssertion.IsDecreasing(currCase.collection))
 		New(t).Contains(out.buf.String(), currCase.msg)
 	}
 }
 
 func TestIsNonDecreasing(t *testing.T) {
 	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
-	Nil(t, mockAssertion.IsNonDecreasing([]int{1, 2}))
-	Nil(t, mockAssertion.IsNonDecreasing([]int{1, 1, 2, 3, 4, 5}))
-	Nil(t, mockAssertion.IsNonDecreasing([]int{1, 1}))
-	NotNil(t, mockAssertion.IsNonDecreasing([]int{2, 1}))
+	New(t).Nil(mockAssertion.IsNonDecreasing([]int{1, 2}))
+	New(t).Nil(mockAssertion.IsNonDecreasing([]int{1, 1, 2, 3, 4, 5}))
+	New(t).Nil(mockAssertion.IsNonDecreasing([]int{1, 1}))
+	New(t).NotNil(mockAssertion.IsNonDecreasing([]int{2, 1}))
 
 	// Check error report
 	for _, currCase := range []struct {
@@ -136,7 +136,7 @@ func TestIsNonDecreasing(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
-		NotNil(t, outAssertion.IsNonDecreasing(currCase.collection))
+		New(t).NotNil(outAssertion.IsNonDecreasing(currCase.collection))
 		New(t).Contains(out.buf.String(), currCase.msg)
 	}
 }
@@ -154,7 +154,7 @@ func TestOrderingMsgAndArgsForwarding(t *testing.T) {
 	for _, f := range funcs {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
-		NotNil(t, f(outAssertion))
+		New(t).NotNil(f(outAssertion))
 		New(t).Contains(out.buf.String(), expectedOutput)
 	}
 }

@@ -123,9 +123,9 @@ func callerName(skip int) string {
 
 func TestGreater(t *testing.T) {
 	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
-	Nil(t, mockAssertion.Greater(2, 1))
-	NotNil(t, mockAssertion.Greater(1, 1))
-	NotNil(t, mockAssertion.Greater(1, 2))
+	New(t).Nil(mockAssertion.Greater(2, 1))
+	New(t).NotNil(mockAssertion.Greater(1, 1))
+	New(t).NotNil(mockAssertion.Greater(1, 2))
 
 	// Check error report
 	for _, currCase := range []struct {
@@ -148,7 +148,7 @@ func TestGreater(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
-		NotNil(t, outAssertion.Greater(currCase.less, currCase.greater))
+		New(t).NotNil(outAssertion.Greater(currCase.less, currCase.greater))
 		New(t).Contains(out.buf.String(), currCase.msg)
 		New(t).Contains(out.helpers, "github.com/tisonkun/assert.(*Assertions).Greater")
 	}
@@ -156,9 +156,9 @@ func TestGreater(t *testing.T) {
 
 func TestGreaterOrEqual(t *testing.T) {
 	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
-	Nil(t, mockAssertion.GreaterOrEqual(2, 1))
-	Nil(t, mockAssertion.GreaterOrEqual(1, 1))
-	NotNil(t, mockAssertion.GreaterOrEqual(1, 2))
+	New(t).Nil(mockAssertion.GreaterOrEqual(2, 1))
+	New(t).Nil(mockAssertion.GreaterOrEqual(1, 1))
+	New(t).NotNil(mockAssertion.GreaterOrEqual(1, 2))
 
 	// Check error report
 	for _, currCase := range []struct {
@@ -181,7 +181,7 @@ func TestGreaterOrEqual(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
-		NotNil(t, outAssertion.GreaterOrEqual(currCase.less, currCase.greater))
+		New(t).NotNil(outAssertion.GreaterOrEqual(currCase.less, currCase.greater))
 		New(t).Contains(out.buf.String(), currCase.msg)
 		New(t).Contains(out.helpers, "github.com/tisonkun/assert.(*Assertions).GreaterOrEqual")
 	}
@@ -189,9 +189,9 @@ func TestGreaterOrEqual(t *testing.T) {
 
 func TestLess(t *testing.T) {
 	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
-	NotNil(t, mockAssertion.Less(2, 1))
-	NotNil(t, mockAssertion.Less(1, 1))
-	Nil(t, mockAssertion.Less(1, 2))
+	New(t).NotNil(mockAssertion.Less(2, 1))
+	New(t).NotNil(mockAssertion.Less(1, 1))
+	New(t).Nil(mockAssertion.Less(1, 2))
 
 	// Check error report
 	for _, currCase := range []struct {
@@ -214,7 +214,7 @@ func TestLess(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
-		NotNil(t, outAssertion.Less(currCase.greater, currCase.less))
+		New(t).NotNil(outAssertion.Less(currCase.greater, currCase.less))
 		New(t).Contains(out.buf.String(), currCase.msg)
 		New(t).Contains(out.helpers, "github.com/tisonkun/assert.(*Assertions).Less")
 	}
@@ -222,9 +222,9 @@ func TestLess(t *testing.T) {
 
 func TestLessOrEqual(t *testing.T) {
 	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
-	NotNil(t, mockAssertion.LessOrEqual(2, 1))
-	Nil(t, mockAssertion.LessOrEqual(1, 1))
-	Nil(t, mockAssertion.LessOrEqual(1, 2))
+	New(t).NotNil(mockAssertion.LessOrEqual(2, 1))
+	New(t).Nil(mockAssertion.LessOrEqual(1, 1))
+	New(t).Nil(mockAssertion.LessOrEqual(1, 2))
 
 	// Check error report
 	for _, currCase := range []struct {
@@ -247,7 +247,7 @@ func TestLessOrEqual(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
-		NotNil(t, outAssertion.LessOrEqual(currCase.greater, currCase.less))
+		New(t).NotNil(outAssertion.LessOrEqual(currCase.greater, currCase.less))
 		New(t).Contains(out.buf.String(), currCase.msg)
 		New(t).Contains(out.helpers, "github.com/tisonkun/assert.(*Assertions).LessOrEqual")
 	}
@@ -255,11 +255,11 @@ func TestLessOrEqual(t *testing.T) {
 
 func TestPositive(t *testing.T) {
 	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
-	Nil(t, mockAssertion.Positive(1))
-	Nil(t, mockAssertion.Positive(1.23))
-	NotNil(t, mockAssertion.Positive(0))
-	NotNil(t, mockAssertion.Positive(-1))
-	NotNil(t, mockAssertion.Positive(-1.23))
+	New(t).Nil(mockAssertion.Positive(1))
+	New(t).Nil(mockAssertion.Positive(1.23))
+	New(t).NotNil(mockAssertion.Positive(0))
+	New(t).NotNil(mockAssertion.Positive(-1))
+	New(t).NotNil(mockAssertion.Positive(-1.23))
 
 	// Check error report
 	for _, currCase := range []struct {
@@ -276,7 +276,7 @@ func TestPositive(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
-		NotNil(t, outAssertion.Positive(currCase.e))
+		New(t).NotNil(outAssertion.Positive(currCase.e))
 		New(t).Contains(out.buf.String(), currCase.msg)
 		New(t).Contains(out.helpers, "github.com/tisonkun/assert.(*Assertions).Positive")
 	}
@@ -284,11 +284,11 @@ func TestPositive(t *testing.T) {
 
 func TestNegative(t *testing.T) {
 	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
-	NotNil(t, mockAssertion.Negative(1))
-	NotNil(t, mockAssertion.Negative(1.23))
-	NotNil(t, mockAssertion.Negative(0))
-	Nil(t, mockAssertion.Negative(-1))
-	Nil(t, mockAssertion.Negative(-1.23))
+	New(t).NotNil(mockAssertion.Negative(1))
+	New(t).NotNil(mockAssertion.Negative(1.23))
+	New(t).NotNil(mockAssertion.Negative(0))
+	New(t).Nil(mockAssertion.Negative(-1))
+	New(t).Nil(mockAssertion.Negative(-1.23))
 
 	// Check error report
 	for _, currCase := range []struct {
@@ -305,7 +305,7 @@ func TestNegative(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
-		NotNil(t, outAssertion.Negative(currCase.e))
+		New(t).NotNil(outAssertion.Negative(currCase.e))
 		New(t).Contains(out.buf.String(), currCase.msg)
 		New(t).Contains(out.helpers, "github.com/tisonkun/assert.(*Assertions).Negative")
 	}
@@ -323,7 +323,7 @@ func Test_compareTwoValuesDifferentValuesTypes(t *testing.T) {
 		{v1: float64(12), v2: "123"},
 		{v1: "float(12)", v2: float64(1)},
 	} {
-		NotNil(t, mockAssertion.compareTwoValues(currCase.v1, currCase.v2, []CompareType{compareLess, compareEqual, compareGreater}, "testFailMessage"))
+		New(t).NotNil(mockAssertion.compareTwoValues(currCase.v1, currCase.v2, []CompareType{compareLess, compareEqual, compareGreater}, "testFailMessage"))
 	}
 }
 
@@ -338,7 +338,7 @@ func Test_compareTwoValuesNotComparableValues(t *testing.T) {
 		{v1: map[string]int{}, v2: map[string]int{}},
 		{v1: make([]int, 5), v2: make([]int, 5)},
 	} {
-		NotNil(t, mockAssertion.compareTwoValues(currCase.v1, currCase.v2, []CompareType{compareLess, compareEqual, compareGreater}, "testFailMessage"))
+		New(t).NotNil(mockAssertion.compareTwoValues(currCase.v1, currCase.v2, []CompareType{compareLess, compareEqual, compareGreater}, "testFailMessage"))
 	}
 }
 
@@ -356,7 +356,7 @@ func Test_compareTwoValuesCorrectCompareResult(t *testing.T) {
 		{v1: 2, v2: 1, compareTypes: []CompareType{compareEqual, compareGreater}},
 		{v1: 2, v2: 1, compareTypes: []CompareType{compareGreater}},
 	} {
-		Nil(t, mockAssertion.compareTwoValues(currCase.v1, currCase.v2, currCase.compareTypes, "testFailMessage"))
+		New(t).Nil(mockAssertion.compareTwoValues(currCase.v1, currCase.v2, currCase.compareTypes, "testFailMessage"))
 	}
 }
 

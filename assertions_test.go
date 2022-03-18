@@ -3,7 +3,6 @@ package assert
 import (
 	"bufio"
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -409,35 +408,29 @@ func TestFormatUnequalValues(t *testing.T) {
 }
 
 func TestNotNil(t *testing.T) {
-
-	mockT := new(testing.T)
-
-	if !NotNil(mockT, new(AssertionTesterConformingObject)) {
-		t.Error("NotNil should return true: object is not nil")
+	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
+	if mockAssertion.NotNil(new(AssertionTesterConformingObject)) != nil {
+		t.Error("NotNil should return nil: object is not nil")
 	}
-	if NotNil(mockT, nil) {
-		t.Error("NotNil should return false: object is nil")
+	if mockAssertion.NotNil(nil) == nil {
+		t.Error("NotNil should return not-nil value: object is nil")
 	}
-	if NotNil(mockT, (*struct{})(nil)) {
-		t.Error("NotNil should return false: object is (*struct{})(nil)")
+	if mockAssertion.NotNil((*struct{})(nil)) == nil {
+		t.Error("NotNil should return not-nil value: object is (*struct{})(nil)")
 	}
-
 }
 
 func TestNil(t *testing.T) {
-
-	mockT := new(testing.T)
-
-	if !Nil(mockT, nil) {
-		t.Error("Nil should return true: object is nil")
+	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
+	if mockAssertion.Nil(nil) != nil {
+		t.Error("Nil should return nil: object is nil")
 	}
-	if !Nil(mockT, (*struct{})(nil)) {
-		t.Error("Nil should return true: object is (*struct{})(nil)")
+	if mockAssertion.Nil((*struct{})(nil)) != nil {
+		t.Error("Nil should return nil: object is (*struct{})(nil)")
 	}
-	if Nil(mockT, new(AssertionTesterConformingObject)) {
-		t.Error("Nil should return false: object is not nil")
+	if mockAssertion.Nil(new(AssertionTesterConformingObject)) == nil {
+		t.Error("Nil should return not-nil value: object is not nil")
 	}
-
 }
 
 func TestTrue(t *testing.T) {
@@ -2121,7 +2114,7 @@ func TestDiffRace(t *testing.T) {
 func TestFailNow(t *testing.T) {
 	out := &outputT{buf: bytes.NewBuffer(nil)}
 	mockAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
-	NotNil(t, mockAssertion.FailNow("failed"))
+	New(t).NotNil(mockAssertion.FailNow("failed"))
 }
 
 func TestBytesEqual(t *testing.T) {
@@ -2155,162 +2148,7 @@ func BenchmarkBytesEqual(b *testing.B) {
 
 func BenchmarkNotNil(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		NotNil(b, b)
-	}
-}
-
-func ExampleComparisonAssertionFunc() {
-	t := &testing.T{} // provided by test
-
-	adder := func(x, y int) int {
-		return x + y
-	}
-
-	type args struct {
-		x int
-		y int
-	}
-
-	tests := []struct {
-		name      string
-		args      args
-		expect    int
-		assertion ComparisonAssertionFunc
-	}{
-		{"2+2=4", args{2, 2}, 4, Equal},
-		{"2+2!=5", args{2, 2}, 5, NotEqual},
-		{"2+3==5", args{2, 3}, 5, Exactly},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tt.assertion(t, tt.expect, adder(tt.args.x, tt.args.y))
-		})
-	}
-}
-
-func TestComparisonAssertionFunc(t *testing.T) {
-	type iface interface {
-		Name() string
-	}
-
-	tests := []struct {
-		name      string
-		expect    any
-		got       any
-		assertion ComparisonAssertionFunc
-	}{
-		{"implements", (*iface)(nil), t, Implements},
-		{"isType", (*testing.T)(nil), t, IsType},
-		{"equal", t, t, Equal},
-		{"equalValues", t, t, EqualValues},
-		{"notEqualValues", t, nil, NotEqualValues},
-		{"exactly", t, t, Exactly},
-		{"notEqual", t, nil, NotEqual},
-		// TODO {"notContains", []int{1, 2, 3}, 4, NotContains},
-		{"subset", []int{1, 2, 3, 4}, []int{2, 3}, Subset},
-		{"notSubset", []int{1, 2, 3, 4}, []int{0, 3}, NotSubset},
-		{"elementsMatch", []byte("abc"), []byte("bac"), ElementsMatch},
-		{"regexp", "^t.*y$", "testify", Regexp},
-		{"notRegexp", "^t.*y$", "Testify", NotRegexp},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tt.assertion(t, tt.expect, tt.got)
-		})
-	}
-}
-
-func ExampleValueAssertionFunc() {
-	t := &testing.T{} // provided by test
-
-	dumbParse := func(input string) any {
-		var x any
-		_ = json.Unmarshal([]byte(input), &x)
-		return x
-	}
-
-	tests := []struct {
-		name      string
-		arg       string
-		assertion ValueAssertionFunc
-	}{
-		{"true is not nil", "true", NotNil},
-		{"empty string is nil", "", Nil},
-		{"zero is not nil", "0", NotNil},
-		{"zero is zero", "0", Zero},
-		{"false is zero", "false", Zero},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tt.assertion(t, dumbParse(tt.arg))
-		})
-	}
-}
-
-func TestValueAssertionFunc(t *testing.T) {
-	tests := []struct {
-		name      string
-		value     any
-		assertion ValueAssertionFunc
-	}{
-		{"notNil", true, NotNil},
-		{"nil", nil, Nil},
-		{"empty", []int{}, Empty},
-		{"notEmpty", []int{1}, NotEmpty},
-		{"zero", false, Zero},
-		{"notZero", 42, NotZero},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tt.assertion(t, tt.value)
-		})
-	}
-}
-
-func ExampleErrorAssertionFunc() {
-	t := &testing.T{} // provided by test
-
-	dumbParseNum := func(input string, v any) error {
-		return json.Unmarshal([]byte(input), v)
-	}
-
-	tests := []struct {
-		name      string
-		arg       string
-		assertion ErrorAssertionFunc
-	}{
-		{"1.2 is number", "1.2", NoError},
-		{"1.2.3 not number", "1.2.3", Error},
-		{"true is not number", "true", Error},
-		{"3 is number", "3", NoError},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			var x float64
-			tt.assertion(t, dumbParseNum(tt.arg, &x))
-		})
-	}
-}
-
-func TestErrorAssertionFunc(t *testing.T) {
-	tests := []struct {
-		name      string
-		err       error
-		assertion ErrorAssertionFunc
-	}{
-		{"noError", nil, NoError},
-		{"error", errors.New("whoops"), Error},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tt.assertion(t, tt.err)
-		})
+		New(b).NotNil(b)
 	}
 }
 
