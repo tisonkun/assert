@@ -98,6 +98,8 @@ func (t *outputT) Errorf(format string, args ...any) {
 	t.buf.WriteString(s)
 }
 
+func (t *outputT) FailNow() {}
+
 func (t *outputT) Helper() {
 	if t.helpers == nil {
 		t.helpers = make(map[string]struct{})

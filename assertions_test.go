@@ -347,6 +347,8 @@ func (t *bufferT) Errorf(format string, args ...any) {
 	t.buf.WriteString(decorate(fmt.Sprintf(format, args...)))
 }
 
+func (t *bufferT) FailNow() {}
+
 func TestStringEqual(t *testing.T) {
 	for i, currCase := range []struct {
 		equalWant  string
@@ -2081,6 +2083,7 @@ func TestDiffRace(t *testing.T) {
 type mockTestingT struct {
 	errorFmt string
 	args     []any
+	failed   bool
 }
 
 func (m *mockTestingT) errorString() string {
@@ -2092,27 +2095,14 @@ func (m *mockTestingT) Errorf(format string, args ...any) {
 	m.args = args
 }
 
-func TestFailNowWithPlainTestingT(t *testing.T) {
+func (m *mockTestingT) FailNow() {
+	m.failed = true
+}
+
+func TestFailNow(t *testing.T) {
 	mockT := &mockTestingT{}
-
-	Panics(t, func() {
-		FailNow(mockT, "failed")
-	}, "should panic since mockT is missing FailNow()")
-}
-
-type mockFailNowTestingT struct {
-}
-
-func (m *mockFailNowTestingT) Errorf(string, ...any) {}
-
-func (m *mockFailNowTestingT) FailNow() {}
-
-func TestFailNowWithFullTestingT(t *testing.T) {
-	mockT := &mockFailNowTestingT{}
-
-	NotPanics(t, func() {
-		FailNow(mockT, "failed")
-	}, "should call mockT.FailNow() rather than panicking")
+	FailNow(mockT, "failed")
+	True(t, mockT.failed)
 }
 
 func TestBytesEqual(t *testing.T) {
@@ -2137,7 +2127,7 @@ func BenchmarkBytesEqual(b *testing.B) {
 	s2 := make([]byte, size)
 	copy(s2, s)
 
-	mockT := &mockFailNowTestingT{}
+	mockT := &mockTestingT{}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		Equal(mockT, s, s2)
