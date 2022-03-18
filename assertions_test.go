@@ -529,7 +529,7 @@ func TestNotEqual(t *testing.T) {
 }
 
 func TestNotEqualValues(t *testing.T) {
-	mockT := new(testing.T)
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
 
 	cases := []struct {
 		expected any
@@ -562,10 +562,11 @@ func TestNotEqualValues(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(fmt.Sprintf("NotEqualValues(%#v, %#v)", c.expected, c.actual), func(t *testing.T) {
-			res := NotEqualValues(mockT, c.expected, c.actual)
-
-			if res != c.result {
+			if mockAssertion.NotEqualValues(c.expected, c.actual) != c.result {
 				t.Errorf("NotEqualValues(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
+			}
+			if mockAssertion.EqualValues(c.expected, c.actual) == c.result {
+				t.Errorf("EqualValues(%#v, %#v) should return %#v", c.expected, c.actual, !c.result)
 			}
 		})
 	}

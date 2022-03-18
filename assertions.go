@@ -476,17 +476,15 @@ func truncatingFormat(data any) string {
 
 // EqualValues asserts that two objects are equal or convertable to the same types
 // and equal.
-//
-//    assert.EqualValues(t, uint32(123), int32(123))
-func EqualValues(t TestingT, expected, actual any, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) EqualValues(expected, actual any, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 
 	if !ObjectsAreEqualValues(expected, actual) {
 		diff := diff(expected, actual)
 		expected, actual = formatUnequalValues(expected, actual)
-		return Fail(t, fmt.Sprintf("Not equal: \n"+
+		return a.Fail(fmt.Sprintf("Not equal: \n"+
 			"expected: %s\n"+
 			"actual  : %s%s", expected, actual, diff), msgAndArgs...)
 	}
@@ -710,15 +708,13 @@ func NotEqual(t TestingT, expected, actual any, msgAndArgs ...any) bool {
 }
 
 // NotEqualValues asserts that two objects are not equal even when converted to the same type
-//
-//    assert.NotEqualValues(t, obj1, obj2)
-func NotEqualValues(t TestingT, expected, actual any, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) NotEqualValues(expected, actual any, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 
 	if ObjectsAreEqualValues(expected, actual) {
-		return Fail(t, fmt.Sprintf("Should not be: %#v\n", actual), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("Should not be: %#v\n", actual), msgAndArgs...)
 	}
 
 	return true
