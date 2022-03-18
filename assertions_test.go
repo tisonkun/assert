@@ -1012,18 +1012,17 @@ func TestNotPanics(t *testing.T) {
 }
 
 func TestNoError(t *testing.T) {
-	mockT := new(testing.T)
-	assertion := New(t)
+	mockAssertion := New(new(testing.T)).WithOnFailure(func(TestingT) any { return -1 })
 
 	// start with a nil error
 	var err error
 
-	assertion.True(NoError(mockT, err), "NoError should return True for nil arg")
+	New(t).Nil(mockAssertion.NoError(err), "NoError should return True for nil arg")
 
 	// now set an error
 	err = errors.New("some error")
 
-	assertion.False(NoError(mockT, err), "NoError with error should return False")
+	New(t).NotNil(mockAssertion.NoError(err), "NoError with error should return False")
 
 	// returning an empty error interface
 	err = func() error {
@@ -1035,7 +1034,7 @@ func TestNoError(t *testing.T) {
 		t.Errorf("Error should be nil due to empty interface: %s", err)
 	}
 
-	assertion.False(NoError(mockT, err), "NoError should fail with empty error interface")
+	New(t).NotNil(mockAssertion.NoError(err), "NoError should fail with empty error interface")
 }
 
 type customError struct{}
@@ -1043,18 +1042,17 @@ type customError struct{}
 func (*customError) Error() string { return "fail" }
 
 func TestError(t *testing.T) {
-	mockT := new(testing.T)
-	assertion := New(t)
+	mockAssertion := New(new(testing.T)).WithOnFailure(func(TestingT) any { return -1 })
 
 	// start with a nil error
 	var err error
 
-	assertion.False(Error(mockT, err), "Error should return False for nil arg")
+	New(t).NotNil(mockAssertion.Error(err), "Error should return False for nil arg")
 
 	// now set an error
 	err = errors.New("some error")
 
-	assertion.True(Error(mockT, err), "Error with error should return True")
+	New(t).Nil(mockAssertion.Error(err), "Error with error should return True")
 
 	// returning an empty error interface
 	err = func() error {
@@ -1066,46 +1064,37 @@ func TestError(t *testing.T) {
 		t.Errorf("Error should be nil due to empty interface: %s", err)
 	}
 
-	assertion.True(Error(mockT, err), "Error should pass with empty error interface")
+	New(t).Nil(mockAssertion.Error(err), "Error should pass with empty error interface")
 }
 
 func TestEqualError(t *testing.T) {
-	mockT := new(testing.T)
-	assertion := New(t)
+	mockAssertion := New(new(testing.T)).WithOnFailure(func(TestingT) any { return -1 })
 
 	// start with a nil error
 	var err error
-	assertion.False(EqualError(mockT, err, ""),
-		"EqualError should return false for nil arg")
+	New(t).NotNil(mockAssertion.EqualError(err, ""), "EqualError should return false for nil arg")
 
 	// now set an error
 	err = errors.New("some error")
-	assertion.False(EqualError(mockT, err, "Not some error"),
-		"EqualError should return false for different error string")
-	assertion.True(EqualError(mockT, err, "some error"),
-		"EqualError should return true")
+	New(t).NotNil(mockAssertion.EqualError(err, "Not some error"), "EqualError should return false for different error string")
+	New(t).Nil(mockAssertion.EqualError(err, "some error"), "EqualError should return true")
 }
 
 func TestErrorContains(t *testing.T) {
-	mockT := new(testing.T)
-	assertion := New(t)
+	mockAssertion := New(new(testing.T)).WithOnFailure(func(TestingT) any { return -1 })
 
 	// start with a nil error
 	var err error
-	assertion.False(ErrorContains(mockT, err, ""),
-		"ErrorContains should return false for nil arg")
+	New(t).NotNil(mockAssertion.ErrorContains(err, ""), "ErrorContains should return false for nil arg")
 
 	// now set an error
 	err = errors.New("some error: another error")
-	assertion.False(ErrorContains(mockT, err, "bad error"),
-		"ErrorContains should return false for different error string")
-	assertion.True(ErrorContains(mockT, err, "some error"),
-		"ErrorContains should return true")
-	assertion.True(ErrorContains(mockT, err, "another error"),
-		"ErrorContains should return true")
+	New(t).NotNil(mockAssertion.ErrorContains(err, "bad error"), "ErrorContains should return false for different error string")
+	New(t).Nil(mockAssertion.ErrorContains(err, "some error"), "ErrorContains should return true")
+	New(t).Nil(mockAssertion.ErrorContains(err, "another error"), "ErrorContains should return true")
 }
 
-func Test_isEmpty(t *testing.T) {
+func TestIsEmpty(t *testing.T) {
 	assertion := New(t)
 	chWithValue := make(chan struct{}, 1)
 	chWithValue <- struct{}{}

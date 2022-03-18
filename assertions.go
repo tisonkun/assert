@@ -1325,81 +1325,65 @@ func InEpsilonSlice(t TestingT, expected, actual any, epsilon float64, msgAndArg
 */
 
 // NoError asserts that a function returned no error (i.e. `nil`).
-//
-//   actualObj, err := SomeFunction()
-//   if assert.NoError(t, err) {
-//	   assert.Equal(t, expectedObj, actualObj)
-//   }
-func NoError(t TestingT, err error, msgAndArgs ...any) bool {
+func (a *Assertions) NoError(err error, msgAndArgs ...any) any {
 	if err != nil {
-		if h, ok := t.(tHelper); ok {
+		if h, ok := a.t.(tHelper); ok {
 			h.Helper()
 		}
-		return Fail(t, fmt.Sprintf("Received unexpected error:\n%+v", err), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("Received unexpected error:\n%+v", err), msgAndArgs...)
 	}
 
-	return true
+	return nil
 }
 
 // Error asserts that a function returned an error (i.e. not `nil`).
-//
-//   actualObj, err := SomeFunction()
-//   if assert.Error(t, err) {
-//	   assert.Equal(t, expectedError, err)
-//   }
-func Error(t TestingT, err error, msgAndArgs ...any) bool {
+func (a *Assertions) Error(err error, msgAndArgs ...any) any {
 	if err == nil {
-		if h, ok := t.(tHelper); ok {
+		if h, ok := a.t.(tHelper); ok {
 			h.Helper()
 		}
-		return Fail(t, "An error is expected but got nil.", msgAndArgs...)
+		return a.Fail("An error is expected but got nil.", msgAndArgs...)
 	}
 
-	return true
+	return nil
 }
 
 // EqualError asserts that a function returned an error (i.e. not `nil`)
 // and that it is equal to the provided error.
-//
-//   actualObj, err := SomeFunction()
-//   assert.EqualError(t, err,  expectedErrorString)
-func EqualError(t TestingT, theError error, errString string, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) EqualError(theError error, errString string, msgAndArgs ...any) any {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
-	if !Error(t, theError, msgAndArgs...) {
-		return false
+	if r := a.Error(theError, msgAndArgs...); r != nil {
+		return r
 	}
 	expected := errString
 	actual := theError.Error()
 	// don't need to use deep equals here, we know they are both strings
 	if expected != actual {
-		return Fail(t, fmt.Sprintf("Error message not equal:\n"+
+		return a.Fail(fmt.Sprintf("Error message not equal:\n"+
 			"expected: %q\n"+
 			"actual  : %q", expected, actual), msgAndArgs...)
 	}
-	return true
+	return nil
 }
 
 // ErrorContains asserts that a function returned an error (i.e. not `nil`)
 // and that the error contains the specified substring.
-//
-//   actualObj, err := SomeFunction()
-//   assert.ErrorContains(t, err,  expectedErrorSubString)
-func ErrorContains(t TestingT, theError error, contains string, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) ErrorContains(theError error, contains string, msgAndArgs ...any) any {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
-	if !Error(t, theError, msgAndArgs...) {
-		return false
+	if r := a.Error(theError, msgAndArgs...); r != nil {
+		return r
 	}
 
 	actual := theError.Error()
 	if !strings.Contains(actual, contains) {
-		return Fail(t, fmt.Sprintf("Error %#v does not contain %#v", actual, contains), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("Error %#v does not contain %#v", actual, contains), msgAndArgs...)
 	}
 
-	return true
+	return nil
 }
 
 // matchRegexp return true if a specified regexp matches a string.
@@ -1411,8 +1395,7 @@ func matchRegexp(rx any, str any) bool {
 		r = regexp.MustCompile(fmt.Sprint(rx))
 	}
 
-	return (r.FindStringIndex(fmt.Sprint(str)) != nil)
-
+	return r.FindStringIndex(fmt.Sprint(str)) != nil
 }
 
 // Regexp asserts that a specified regexp matches a string.
