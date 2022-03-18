@@ -10,6 +10,7 @@ func (a *Assertions) isOrdered(object any, allowedComparesResults []CompareType,
 	objKind := reflect.TypeOf(object).Kind()
 	if objKind != reflect.Slice && objKind != reflect.Array {
 		a.Fail(fmt.Sprintf("Can not test elements in order for type \"%s\"", objKind), msgAndArgs...)
+		return
 	}
 
 	objValue := reflect.ValueOf(object)
@@ -34,10 +35,12 @@ func (a *Assertions) isOrdered(object any, allowedComparesResults []CompareType,
 
 		if !isComparable {
 			a.Fail(fmt.Sprintf("Can not compare type \"%s\" and \"%s\"", reflect.TypeOf(value), reflect.TypeOf(prevValue)), msgAndArgs...)
+			return
 		}
 
 		if !containsValue(allowedComparesResults, compareResult) {
 			a.Fail(fmt.Sprintf(failMessage, prevValue, value), msgAndArgs...)
+			return
 		}
 	}
 }
