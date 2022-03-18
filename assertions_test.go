@@ -166,32 +166,26 @@ func TestObjectsAreEqual(t *testing.T) {
 }
 
 func TestImplements(t *testing.T) {
-
-	mockT := new(testing.T)
-
-	if !Implements(mockT, (*AssertionTesterInterface)(nil), new(AssertionTesterConformingObject)) {
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
+	if !mockAssertion.Implements((*AssertionTesterInterface)(nil), new(AssertionTesterConformingObject)) {
 		t.Error("Implements method should return true: AssertionTesterConformingObject implements AssertionTesterInterface")
 	}
-	if Implements(mockT, (*AssertionTesterInterface)(nil), new(AssertionTesterNonConformingObject)) {
+	if mockAssertion.Implements((*AssertionTesterInterface)(nil), new(AssertionTesterNonConformingObject)) {
 		t.Error("Implements method should return false: AssertionTesterNonConformingObject does not implements AssertionTesterInterface")
 	}
-	if Implements(mockT, (*AssertionTesterInterface)(nil), nil) {
+	if mockAssertion.Implements((*AssertionTesterInterface)(nil), nil) {
 		t.Error("Implements method should return false: nil does not implement AssertionTesterInterface")
 	}
-
 }
 
 func TestIsType(t *testing.T) {
-
-	mockT := new(testing.T)
-
-	if !IsType(mockT, new(AssertionTesterConformingObject), new(AssertionTesterConformingObject)) {
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
+	if !mockAssertion.IsType(new(AssertionTesterConformingObject), new(AssertionTesterConformingObject)) {
 		t.Error("IsType should return true: AssertionTesterConformingObject is the same type as AssertionTesterConformingObject")
 	}
-	if IsType(mockT, new(AssertionTesterConformingObject), new(AssertionTesterNonConformingObject)) {
+	if mockAssertion.IsType(new(AssertionTesterConformingObject), new(AssertionTesterNonConformingObject)) {
 		t.Error("IsType should return false: AssertionTesterConformingObject is not the same type as AssertionTesterNonConformingObject")
 	}
-
 }
 
 func TestEqual(t *testing.T) {
@@ -240,43 +234,40 @@ func ptr(i int) *int {
 }
 
 func TestSame(t *testing.T) {
-
-	mockT := new(testing.T)
-
-	if Same(mockT, ptr(1), ptr(1)) {
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
+	if mockAssertion.Same(ptr(1), ptr(1)) {
 		t.Error("Same should return false")
 	}
-	if Same(mockT, 1, 1) {
+	if mockAssertion.Same(1, 1) {
 		t.Error("Same should return false")
 	}
 	p := ptr(2)
-	if Same(mockT, p, *p) {
+	if mockAssertion.Same(p, *p) {
 		t.Error("Same should return false")
 	}
-	if !Same(mockT, p, p) {
+	if !mockAssertion.Same(p, p) {
 		t.Error("Same should return true")
 	}
 }
 
 func TestNotSame(t *testing.T) {
-	mockT := new(testing.T)
-
-	if !NotSame(mockT, ptr(1), ptr(1)) {
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
+	if !mockAssertion.NotSame(ptr(1), ptr(1)) {
 		t.Error("NotSame should return true; different pointers")
 	}
-	if !NotSame(mockT, 1, 1) {
+	if !mockAssertion.NotSame(1, 1) {
 		t.Error("NotSame should return true; constant inputs")
 	}
 	p := ptr(2)
-	if !NotSame(mockT, p, *p) {
+	if !mockAssertion.NotSame(p, *p) {
 		t.Error("NotSame should return true; mixed-type inputs")
 	}
-	if NotSame(mockT, p, p) {
+	if mockAssertion.NotSame(p, p) {
 		t.Error("NotSame should return false")
 	}
 }
 
-func Test_samePointers(t *testing.T) {
+func TestSamePointers(t *testing.T) {
 	p := ptr(2)
 
 	type args struct {

@@ -124,7 +124,6 @@ the problem actually occurred in calling code.*/
 // of each stack frame leading from the current test to the assert call that
 // failed.
 func CallerInfo() []string {
-
 	var pc uintptr
 	var ok bool
 	var file string
@@ -329,32 +328,30 @@ func labeledOutput(content ...labeledContent) string {
 }
 
 // Implements asserts that an object is implemented by the specified interface.
-//
-//    assert.Implements(t, (*MyInterface)(nil), new(MyObject))
-func Implements(t TestingT, interfaceObject any, object any, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) Implements(interfaceObject any, object any, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 	interfaceType := reflect.TypeOf(interfaceObject).Elem()
 
 	if object == nil {
-		return Fail(t, fmt.Sprintf("Cannot check if nil implements %v", interfaceType), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("Cannot check if nil implements %v", interfaceType), msgAndArgs...)
 	}
 	if !reflect.TypeOf(object).Implements(interfaceType) {
-		return Fail(t, fmt.Sprintf("%T must implement %v", object, interfaceType), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("%T must implement %v", object, interfaceType), msgAndArgs...)
 	}
 
 	return true
 }
 
 // IsType asserts that the specified objects are of the same type.
-func IsType(t TestingT, expectedType any, object any, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) IsType(expectedType any, object any, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 
 	if !ObjectsAreEqual(reflect.TypeOf(object), reflect.TypeOf(expectedType)) {
-		return Fail(t, fmt.Sprintf("Object expected to be of type %v, but was %v", reflect.TypeOf(expectedType), reflect.TypeOf(object)), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("Object expected to be of type %v, but was %v", reflect.TypeOf(expectedType), reflect.TypeOf(object)), msgAndArgs...)
 	}
 
 	return true
@@ -398,18 +395,15 @@ func validateEqualArgs(expected, actual any) error {
 }
 
 // Same asserts that two pointers reference the same object.
-//
-//    assert.Same(t, ptr1, ptr2)
-//
 // Both arguments must be pointer variables. Pointer variable sameness is
 // determined based on the equality of both type and value.
-func Same(t TestingT, expected, actual any, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) Same(expected, actual any, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 
 	if !samePointers(expected, actual) {
-		return Fail(t, fmt.Sprintf("Not same: \n"+
+		return a.Fail(fmt.Sprintf("Not same: \n"+
 			"expected: %p %#v\n"+
 			"actual  : %p %#v", expected, expected, actual, actual), msgAndArgs...)
 	}
@@ -418,18 +412,15 @@ func Same(t TestingT, expected, actual any, msgAndArgs ...any) bool {
 }
 
 // NotSame asserts that two pointers do not reference the same object.
-//
-//    assert.NotSame(t, ptr1, ptr2)
-//
 // Both arguments must be pointer variables. Pointer variable sameness is
 // determined based on the equality of both type and value.
-func NotSame(t TestingT, expected, actual any, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) NotSame(expected, actual any, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 
 	if samePointers(expected, actual) {
-		return Fail(t, fmt.Sprintf(
+		return a.Fail(fmt.Sprintf(
 			"Expected and actual point to the same object: %p %#v",
 			expected, expected), msgAndArgs...)
 	}
@@ -576,7 +567,6 @@ func (a *Assertions) Nil(object any, msgAndArgs ...any) bool {
 
 // isEmpty gets whether the specified object is considered empty or not.
 func isEmpty(object any) bool {
-
 	// get nil case out of the way
 	if object == nil {
 		return true
