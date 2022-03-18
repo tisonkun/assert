@@ -90,15 +90,19 @@ func TestCompare(t *testing.T) {
 type outputT struct {
 	buf     *bytes.Buffer
 	helpers map[string]struct{}
+	failed  bool
 }
 
 // Implements TestingT
 func (t *outputT) Errorf(format string, args ...any) {
 	s := fmt.Sprintf(format, args...)
 	t.buf.WriteString(s)
+	t.failed = true
 }
 
-func (t *outputT) FailNow() {}
+func (t *outputT) FailNow() {
+	t.failed = true
+}
 
 func (t *outputT) Helper() {
 	if t.helpers == nil {

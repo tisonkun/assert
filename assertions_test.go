@@ -441,34 +441,36 @@ func TestNil(t *testing.T) {
 }
 
 func TestTrue(t *testing.T) {
-	var failed bool
-	mockT := new(testing.T)
-	assertion := New(mockT, func(t TestingT) {
-		failed = true
-	})
-	assertion.True(true)
-	if failed {
+	mockT := new(mockTestingT)
+	mockAssertion := New(mockT, FailNowOnFailure)
+
+	mockT.reset()
+	mockAssertion.True(true)
+	if mockT.failed {
 		t.Error("True should return true")
 	}
-	assertion.True(false)
-	if !failed {
+
+	mockT.reset()
+	mockAssertion.True(false)
+	if !mockT.failed {
 		t.Error("True should return false")
 	}
 }
 
 func TestFalse(t *testing.T) {
-	var failed bool
-	mockT := new(testing.T)
-	assertion := New(mockT, func(t TestingT) {
-		failed = true
-	})
-	assertion.False(false)
-	if failed {
-		t.Error("True should return true")
+	mockT := new(mockTestingT)
+	mockAssertion := New(mockT, FailNowOnFailure)
+
+	mockT.reset()
+	mockAssertion.False(false)
+	if mockT.failed {
+		t.Error("False should return true")
 	}
-	assertion.False(true)
-	if !failed {
-		t.Error("True should return false")
+
+	mockT.reset()
+	mockAssertion.False(true)
+	if !mockT.failed {
+		t.Error("False should return false")
 	}
 }
 
@@ -2138,9 +2140,16 @@ func (m *mockTestingT) errorString() string {
 	return fmt.Sprintf(m.errorFmt, m.args...)
 }
 
+func (m *mockTestingT) reset() {
+	m.errorFmt = ""
+	m.args = nil
+	m.failed = false
+}
+
 func (m *mockTestingT) Errorf(format string, args ...any) {
 	m.errorFmt = format
 	m.args = args
+	m.failed = true
 }
 
 func (m *mockTestingT) FailNow() {
@@ -2297,50 +2306,6 @@ func TestValueAssertionFunc(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.assertion(t, tt.value)
-		})
-	}
-}
-
-func ExampleBoolAssertionFunc() {
-	t := &testing.T{} // provided by test
-
-	isOkay := func(x int) bool {
-		return x >= 42
-	}
-
-	tests := []struct {
-		name      string
-		arg       int
-		assertion func(*Assertions, bool, ...any)
-	}{
-		{"-1 is bad", -1, (*Assertions).False},
-		{"42 is good", 42, (*Assertions).True},
-		{"41 is bad", 41, (*Assertions).False},
-		{"45 is cool", 45, (*Assertions).True},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assertion := New(t, FailNowOnFailure)
-			tt.assertion(assertion, isOkay(tt.arg))
-		})
-	}
-}
-
-func TestBoolAssertionFunc(t *testing.T) {
-	tests := []struct {
-		name      string
-		value     bool
-		assertion func(*Assertions, bool, ...any)
-	}{
-		{"true", true, (*Assertions).True},
-		{"false", false, (*Assertions).False},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assertion := New(t, FailNowOnFailure)
-			tt.assertion(assertion, tt.value)
 		})
 	}
 }

@@ -6,24 +6,26 @@ import (
 )
 
 func TestIsIncreasing(t *testing.T) {
-	mockT := new(testing.T)
 	assertion := New(t, FailNowOnFailure)
 
-	if !IsIncreasing(mockT, []int{1, 2}) {
-		t.Error("IsIncreasing should return true")
-	}
+	mockT := new(mockTestingT)
+	mockAssertion := New(mockT, FailNowOnFailure)
 
-	if !IsIncreasing(mockT, []int{1, 2, 3, 4, 5}) {
-		t.Error("IsIncreasing should return true")
-	}
+	mockT.reset()
+	mockAssertion.IsIncreasing([]int{1, 2})
+	assertion.False(mockT.failed)
 
-	if IsIncreasing(mockT, []int{1, 1}) {
-		t.Error("IsIncreasing should return false")
-	}
+	mockT.reset()
+	mockAssertion.IsIncreasing([]int{1, 2, 3, 4, 5})
+	assertion.False(mockT.failed)
 
-	if IsIncreasing(mockT, []int{2, 1}) {
-		t.Error("IsIncreasing should return false")
-	}
+	mockT.reset()
+	mockAssertion.IsIncreasing([]int{1, 1})
+	assertion.True(mockT.failed)
+
+	mockT.reset()
+	mockAssertion.IsIncreasing([]int{2, 1})
+	assertion.True(mockT.failed)
 
 	// Check error report
 	for _, currCase := range []struct {
@@ -46,30 +48,34 @@ func TestIsIncreasing(t *testing.T) {
 		{collection: []float64{2.34, 1.23}, msg: `"2.34" is not less than "1.23"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
-		assertion.False(IsIncreasing(out, currCase.collection))
+		outAssertion := New(out, FailNowOnFailure)
+		outAssertion.IsIncreasing(currCase.collection)
+		assertion.True(out.failed)
 		Contains(t, out.buf.String(), currCase.msg)
 	}
 }
 
 func TestIsNonIncreasing(t *testing.T) {
-	mockT := new(testing.T)
 	assertion := New(t, FailNowOnFailure)
 
-	if !IsNonIncreasing(mockT, []int{2, 1}) {
-		t.Error("IsNonIncreasing should return true")
-	}
+	mockT := new(mockTestingT)
+	mockAssertion := New(mockT, FailNowOnFailure)
 
-	if !IsNonIncreasing(mockT, []int{5, 4, 4, 3, 2, 1}) {
-		t.Error("IsNonIncreasing should return true")
-	}
+	mockT.reset()
+	mockAssertion.IsNonIncreasing([]int{2, 1})
+	assertion.False(mockT.failed)
 
-	if !IsNonIncreasing(mockT, []int{1, 1}) {
-		t.Error("IsNonIncreasing should return true")
-	}
+	mockT.reset()
+	mockAssertion.IsNonIncreasing([]int{5, 4, 4, 3, 2, 1})
+	assertion.False(mockT.failed)
 
-	if IsNonIncreasing(mockT, []int{1, 2}) {
-		t.Error("IsNonIncreasing should return false")
-	}
+	mockT.reset()
+	mockAssertion.IsNonIncreasing([]int{1, 1})
+	assertion.False(mockT.failed)
+
+	mockT.reset()
+	mockAssertion.IsNonIncreasing([]int{1, 2})
+	assertion.True(mockT.failed)
 
 	// Check error report
 	for _, currCase := range []struct {
@@ -92,30 +98,34 @@ func TestIsNonIncreasing(t *testing.T) {
 		{collection: []float64{1.23, 2.34}, msg: `"1.23" is not greater than or equal to "2.34"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
-		assertion.False(IsNonIncreasing(out, currCase.collection))
+		outAssertion := New(out, FailNowOnFailure)
+		outAssertion.IsNonIncreasing(currCase.collection)
+		assertion.True(out.failed)
 		Contains(t, out.buf.String(), currCase.msg)
 	}
 }
 
 func TestIsDecreasing(t *testing.T) {
-	mockT := new(testing.T)
 	assertion := New(t, FailNowOnFailure)
 
-	if !IsDecreasing(mockT, []int{2, 1}) {
-		t.Error("IsDecreasing should return true")
-	}
+	mockT := new(mockTestingT)
+	mockAssertion := New(mockT, FailNowOnFailure)
 
-	if !IsDecreasing(mockT, []int{5, 4, 3, 2, 1}) {
-		t.Error("IsDecreasing should return true")
-	}
+	mockT.reset()
+	mockAssertion.IsDecreasing([]int{2, 1})
+	assertion.False(mockT.failed)
 
-	if IsDecreasing(mockT, []int{1, 1}) {
-		t.Error("IsDecreasing should return false")
-	}
+	mockT.reset()
+	mockAssertion.IsDecreasing([]int{5, 4, 3, 2, 1})
+	assertion.False(mockT.failed)
 
-	if IsDecreasing(mockT, []int{1, 2}) {
-		t.Error("IsDecreasing should return false")
-	}
+	mockT.reset()
+	mockAssertion.IsDecreasing([]int{1, 1})
+	assertion.True(mockT.failed)
+
+	mockT.reset()
+	mockAssertion.IsDecreasing([]int{1, 2})
+	assertion.True(mockT.failed)
 
 	// Check error report
 	for _, currCase := range []struct {
@@ -138,30 +148,34 @@ func TestIsDecreasing(t *testing.T) {
 		{collection: []float64{1.23, 2.34}, msg: `"1.23" is not greater than "2.34"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
-		assertion.False(IsDecreasing(out, currCase.collection))
+		outAssertion := New(out, FailNowOnFailure)
+		outAssertion.IsDecreasing(currCase.collection)
+		assertion.True(out.failed)
 		Contains(t, out.buf.String(), currCase.msg)
 	}
 }
 
 func TestIsNonDecreasing(t *testing.T) {
-	mockT := new(testing.T)
 	assertion := New(t, FailNowOnFailure)
 
-	if !IsNonDecreasing(mockT, []int{1, 2}) {
-		t.Error("IsNonDecreasing should return true")
-	}
+	mockT := new(mockTestingT)
+	mockAssertion := New(mockT, FailNowOnFailure)
 
-	if !IsNonDecreasing(mockT, []int{1, 1, 2, 3, 4, 5}) {
-		t.Error("IsNonDecreasing should return true")
-	}
+	mockT.reset()
+	mockAssertion.IsNonDecreasing([]int{1, 2})
+	assertion.False(mockT.failed)
 
-	if !IsNonDecreasing(mockT, []int{1, 1}) {
-		t.Error("IsNonDecreasing should return false")
-	}
+	mockT.reset()
+	mockAssertion.IsNonDecreasing([]int{1, 1, 2, 3, 4, 5})
+	assertion.False(mockT.failed)
 
-	if IsNonDecreasing(mockT, []int{2, 1}) {
-		t.Error("IsNonDecreasing should return false")
-	}
+	mockT.reset()
+	mockAssertion.IsNonDecreasing([]int{1, 1})
+	assertion.False(mockT.failed)
+
+	mockT.reset()
+	mockAssertion.IsNonDecreasing([]int{2, 1})
+	assertion.True(mockT.failed)
 
 	// Check error report
 	for _, currCase := range []struct {
@@ -184,24 +198,30 @@ func TestIsNonDecreasing(t *testing.T) {
 		{collection: []float64{2.34, 1.23}, msg: `"2.34" is not less than or equal to "1.23"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
-		assertion.False(IsNonDecreasing(out, currCase.collection))
+		outAssertion := New(out, FailNowOnFailure)
+		outAssertion.IsNonDecreasing(currCase.collection)
+		assertion.True(out.failed)
 		Contains(t, out.buf.String(), currCase.msg)
 	}
 }
 
 func TestOrderingMsgAndArgsForwarding(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
+
 	msgAndArgs := []any{"format %s %x", "this", 0xc001}
 	expectedOutput := "format this c001\n"
 	collection := []int{1, 2, 1}
-	funcs := []func(t TestingT){
-		func(t TestingT) { IsIncreasing(t, collection, msgAndArgs...) },
-		func(t TestingT) { IsNonIncreasing(t, collection, msgAndArgs...) },
-		func(t TestingT) { IsDecreasing(t, collection, msgAndArgs...) },
-		func(t TestingT) { IsNonDecreasing(t, collection, msgAndArgs...) },
+	funcs := []func(*Assertions){
+		func(a *Assertions) { a.IsIncreasing(collection, msgAndArgs...) },
+		func(a *Assertions) { a.IsNonIncreasing(collection, msgAndArgs...) },
+		func(a *Assertions) { a.IsDecreasing(collection, msgAndArgs...) },
+		func(a *Assertions) { a.IsNonDecreasing(collection, msgAndArgs...) },
 	}
 	for _, f := range funcs {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
-		f(out)
+		outAssertion := New(out, FailNowOnFailure)
+		f(outAssertion)
+		assertion.True(out.failed)
 		Contains(t, out.buf.String(), expectedOutput)
 	}
 }
