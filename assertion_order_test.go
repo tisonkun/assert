@@ -35,7 +35,7 @@ func TestIsIncreasing(t *testing.T) {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
 		NotNil(t, outAssertion.IsIncreasing(currCase.collection))
-		Contains(t, out.buf.String(), currCase.msg)
+		New(t).Contains(out.buf.String(), currCase.msg)
 	}
 }
 
@@ -69,7 +69,7 @@ func TestIsNonIncreasing(t *testing.T) {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
 		NotNil(t, outAssertion.IsNonIncreasing(currCase.collection))
-		Contains(t, out.buf.String(), currCase.msg)
+		New(t).Contains(out.buf.String(), currCase.msg)
 	}
 }
 
@@ -103,7 +103,7 @@ func TestIsDecreasing(t *testing.T) {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
 		NotNil(t, outAssertion.IsDecreasing(currCase.collection))
-		Contains(t, out.buf.String(), currCase.msg)
+		New(t).Contains(out.buf.String(), currCase.msg)
 	}
 }
 
@@ -137,7 +137,7 @@ func TestIsNonDecreasing(t *testing.T) {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
 		NotNil(t, outAssertion.IsNonDecreasing(currCase.collection))
-		Contains(t, out.buf.String(), currCase.msg)
+		New(t).Contains(out.buf.String(), currCase.msg)
 	}
 }
 
@@ -155,6 +155,6 @@ func TestOrderingMsgAndArgsForwarding(t *testing.T) {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
 		NotNil(t, f(outAssertion))
-		Contains(t, out.buf.String(), expectedOutput)
+		New(t).Contains(out.buf.String(), expectedOutput)
 	}
 }

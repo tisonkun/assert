@@ -783,48 +783,38 @@ func containsElement(list any, element any) (ok, found bool) {
 
 // Contains asserts that the specified string, list(array, slice...) or map contains the
 // specified substring or element.
-//
-//    assert.Contains(t, "Hello World", "World")
-//    assert.Contains(t, ["Hello", "World"], "World")
-//    assert.Contains(t, {"Hello": "World"}, "Hello")
-func Contains(t TestingT, s, contains any, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) Contains(s, contains any, msgAndArgs ...any) any {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 
 	ok, found := containsElement(s, contains)
 	if !ok {
-		return Fail(t, fmt.Sprintf("%#v could not be applied builtin len()", s), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("%#v could not be applied builtin len()", s), msgAndArgs...)
 	}
 	if !found {
-		return Fail(t, fmt.Sprintf("%#v does not contain %#v", s, contains), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("%#v does not contain %#v", s, contains), msgAndArgs...)
 	}
 
-	return true
-
+	return nil
 }
 
 // NotContains asserts that the specified string, list(array, slice...) or map does NOT contain the
 // specified substring or element.
-//
-//    assert.NotContains(t, "Hello World", "Earth")
-//    assert.NotContains(t, ["Hello", "World"], "Earth")
-//    assert.NotContains(t, {"Hello": "World"}, "Earth")
-func NotContains(t TestingT, s, contains any, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) NotContains(s, contains any, msgAndArgs ...any) any {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 
 	ok, found := containsElement(s, contains)
 	if !ok {
-		return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", s), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("\"%s\" could not be applied builtin len()", s), msgAndArgs...)
 	}
 	if found {
-		return Fail(t, fmt.Sprintf("\"%s\" should not contain \"%s\"", s, contains), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("\"%s\" should not contain \"%s\"", s, contains), msgAndArgs...)
 	}
 
-	return true
-
+	return nil
 }
 
 // Subset asserts that the specified list(array, slice...) contains all

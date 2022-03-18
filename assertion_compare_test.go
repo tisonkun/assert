@@ -149,8 +149,8 @@ func TestGreater(t *testing.T) {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
 		NotNil(t, outAssertion.Greater(currCase.less, currCase.greater))
-		Contains(t, out.buf.String(), currCase.msg)
-		Contains(t, out.helpers, "github.com/tisonkun/assert.(*Assertions).Greater")
+		New(t).Contains(out.buf.String(), currCase.msg)
+		New(t).Contains(out.helpers, "github.com/tisonkun/assert.(*Assertions).Greater")
 	}
 }
 
@@ -182,8 +182,8 @@ func TestGreaterOrEqual(t *testing.T) {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
 		NotNil(t, outAssertion.GreaterOrEqual(currCase.less, currCase.greater))
-		Contains(t, out.buf.String(), currCase.msg)
-		Contains(t, out.helpers, "github.com/tisonkun/assert.(*Assertions).GreaterOrEqual")
+		New(t).Contains(out.buf.String(), currCase.msg)
+		New(t).Contains(out.helpers, "github.com/tisonkun/assert.(*Assertions).GreaterOrEqual")
 	}
 }
 
@@ -215,8 +215,8 @@ func TestLess(t *testing.T) {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
 		NotNil(t, outAssertion.Less(currCase.greater, currCase.less))
-		Contains(t, out.buf.String(), currCase.msg)
-		Contains(t, out.helpers, "github.com/tisonkun/assert.(*Assertions).Less")
+		New(t).Contains(out.buf.String(), currCase.msg)
+		New(t).Contains(out.helpers, "github.com/tisonkun/assert.(*Assertions).Less")
 	}
 }
 
@@ -248,8 +248,8 @@ func TestLessOrEqual(t *testing.T) {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
 		NotNil(t, outAssertion.LessOrEqual(currCase.greater, currCase.less))
-		Contains(t, out.buf.String(), currCase.msg)
-		Contains(t, out.helpers, "github.com/tisonkun/assert.(*Assertions).LessOrEqual")
+		New(t).Contains(out.buf.String(), currCase.msg)
+		New(t).Contains(out.helpers, "github.com/tisonkun/assert.(*Assertions).LessOrEqual")
 	}
 }
 
@@ -277,8 +277,8 @@ func TestPositive(t *testing.T) {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
 		NotNil(t, outAssertion.Positive(currCase.e))
-		Contains(t, out.buf.String(), currCase.msg)
-		Contains(t, out.helpers, "github.com/tisonkun/assert.(*Assertions).Positive")
+		New(t).Contains(out.buf.String(), currCase.msg)
+		New(t).Contains(out.helpers, "github.com/tisonkun/assert.(*Assertions).Positive")
 	}
 }
 
@@ -306,8 +306,8 @@ func TestNegative(t *testing.T) {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
 		NotNil(t, outAssertion.Negative(currCase.e))
-		Contains(t, out.buf.String(), currCase.msg)
-		Contains(t, out.helpers, "github.com/tisonkun/assert.(*Assertions).Negative")
+		New(t).Contains(out.buf.String(), currCase.msg)
+		New(t).Contains(out.helpers, "github.com/tisonkun/assert.(*Assertions).Negative")
 	}
 }
 
@@ -391,6 +391,6 @@ func TestComparingMsgAndArgsForwarding(t *testing.T) {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		outAssertion := New(out)
 		f(outAssertion)
-		Contains(t, out.buf.String(), expectedOutput)
+		New(t).Contains(out.buf.String(), expectedOutput)
 	}
 }
