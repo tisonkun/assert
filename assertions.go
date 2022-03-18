@@ -272,33 +272,6 @@ func (a *Assertions) Fail(failureMessage string, msgAndArgs ...any) bool {
 	return false
 }
 
-// Fail reports a failure through
-func Fail(t TestingT, failureMessage string, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
-		h.Helper()
-	}
-	content := []labeledContent{
-		{"Error Trace", strings.Join(CallerInfo(), "\n\t\t\t")},
-		{"Error", failureMessage},
-	}
-
-	// Add test name if the Go version supports it
-	if n, ok := t.(interface {
-		Name() string
-	}); ok {
-		content = append(content, labeledContent{"Test", n.Name()})
-	}
-
-	message := messageFromMsgAndArgs(msgAndArgs...)
-	if len(message) > 0 {
-		content = append(content, labeledContent{"Messages", message})
-	}
-
-	t.Errorf("\n%s", ""+labeledOutput(content...))
-
-	return false
-}
-
 type labeledContent struct {
 	label   string
 	content string
@@ -781,10 +754,8 @@ func (a *Assertions) NotContains(s, contains any, msgAndArgs ...any) bool {
 
 // Subset asserts that the specified list(array, slice...) contains all
 // elements given in the specified subset(array, slice...).
-//
-//    assert.Subset(t, [1, 2, 3], [1, 2], "But [1, 2, 3] does contain [1, 2]")
-func Subset(t TestingT, list, subset any, msgAndArgs ...any) (ok bool) {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) Subset(list, subset any, msgAndArgs ...any) (ok bool) {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 	if subset == nil {
@@ -802,21 +773,21 @@ func Subset(t TestingT, list, subset any, msgAndArgs ...any) (ok bool) {
 	subsetKind := reflect.TypeOf(subset).Kind()
 
 	if listKind != reflect.Array && listKind != reflect.Slice {
-		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", list, listKind), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("%q has an unsupported type %s", list, listKind), msgAndArgs...)
 	}
 
 	if subsetKind != reflect.Array && subsetKind != reflect.Slice {
-		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", subset, subsetKind), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("%q has an unsupported type %s", subset, subsetKind), msgAndArgs...)
 	}
 
 	for i := 0; i < subsetValue.Len(); i++ {
 		element := subsetValue.Index(i).Interface()
 		ok, found := containsElement(list, element)
 		if !ok {
-			return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", list), msgAndArgs...)
+			return a.Fail(fmt.Sprintf("\"%s\" could not be applied builtin len()", list), msgAndArgs...)
 		}
 		if !found {
-			return Fail(t, fmt.Sprintf("\"%s\" does not contain \"%s\"", list, element), msgAndArgs...)
+			return a.Fail(fmt.Sprintf("\"%s\" does not contain \"%s\"", list, element), msgAndArgs...)
 		}
 	}
 
@@ -825,14 +796,12 @@ func Subset(t TestingT, list, subset any, msgAndArgs ...any) (ok bool) {
 
 // NotSubset asserts that the specified list(array, slice...) contains not all
 // elements given in the specified subset(array, slice...).
-//
-//    assert.NotSubset(t, [1, 3, 4], [1, 2], "But [1, 3, 4] does not contain [1, 2]")
-func NotSubset(t TestingT, list, subset any, msgAndArgs ...any) (ok bool) {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) NotSubset(list, subset any, msgAndArgs ...any) (ok bool) {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 	if subset == nil {
-		return Fail(t, "nil is the empty set which is a subset of every set", msgAndArgs...)
+		return a.Fail("nil is the empty set which is a subset of every set", msgAndArgs...)
 	}
 
 	subsetValue := reflect.ValueOf(subset)
@@ -846,41 +815,39 @@ func NotSubset(t TestingT, list, subset any, msgAndArgs ...any) (ok bool) {
 	subsetKind := reflect.TypeOf(subset).Kind()
 
 	if listKind != reflect.Array && listKind != reflect.Slice {
-		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", list, listKind), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("%q has an unsupported type %s", list, listKind), msgAndArgs...)
 	}
 
 	if subsetKind != reflect.Array && subsetKind != reflect.Slice {
-		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", subset, subsetKind), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("%q has an unsupported type %s", subset, subsetKind), msgAndArgs...)
 	}
 
 	for i := 0; i < subsetValue.Len(); i++ {
 		element := subsetValue.Index(i).Interface()
 		ok, found := containsElement(list, element)
 		if !ok {
-			return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", list), msgAndArgs...)
+			return a.Fail(fmt.Sprintf("\"%s\" could not be applied builtin len()", list), msgAndArgs...)
 		}
 		if !found {
 			return true
 		}
 	}
 
-	return Fail(t, fmt.Sprintf("%q is a subset of %q", subset, list), msgAndArgs...)
+	return a.Fail(fmt.Sprintf("%q is a subset of %q", subset, list), msgAndArgs...)
 }
 
 // ElementsMatch asserts that the specified listA(array, slice...) is equal to specified
 // listB(array, slice...) ignoring the order of the elements. If there are duplicate elements,
 // the number of appearances of each of them in both lists should match.
-//
-// assert.ElementsMatch(t, [1, 3, 2, 3], [1, 3, 3, 2])
-func ElementsMatch(t TestingT, listA, listB any, msgAndArgs ...any) (ok bool) {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) ElementsMatch(listA, listB any, msgAndArgs ...any) (ok bool) {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 	if isEmpty(listA) && isEmpty(listB) {
 		return true
 	}
 
-	if !isList(t, listA, msgAndArgs...) || !isList(t, listB, msgAndArgs...) {
+	if !a.isList(listA, msgAndArgs...) || !a.isList(listB, msgAndArgs...) {
 		return false
 	}
 
@@ -890,15 +857,14 @@ func ElementsMatch(t TestingT, listA, listB any, msgAndArgs ...any) (ok bool) {
 		return true
 	}
 
-	return Fail(t, formatListDiff(listA, listB, extraA, extraB), msgAndArgs...)
+	return a.Fail(formatListDiff(listA, listB, extraA, extraB), msgAndArgs...)
 }
 
 // isList checks that the provided value is array or slice.
-func isList(t TestingT, list any, msgAndArgs ...any) (ok bool) {
+func (a *Assertions) isList(list any, msgAndArgs ...any) (ok bool) {
 	kind := reflect.TypeOf(list).Kind()
 	if kind != reflect.Array && kind != reflect.Slice {
-		return Fail(t, fmt.Sprintf("%q has an unsupported type %s, expecting array or slice", list, kind),
-			msgAndArgs...)
+		return a.Fail(fmt.Sprintf("%q has an unsupported type %s, expecting array or slice", list, kind), msgAndArgs...)
 	}
 	return true
 }
@@ -964,15 +930,14 @@ func formatListDiff(listA, listB any, extraA, extraB []any) string {
 }
 
 // Condition uses a Comparison to assert a complex condition.
-func Condition(t TestingT, comp Comparison, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) Condition(comp Comparison, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
-	result := comp()
-	if !result {
-		Fail(t, "Condition failed!", msgAndArgs...)
+	if !comp() {
+		return a.Fail("Condition failed!", msgAndArgs...)
 	}
-	return result
+	return true
 }
 
 // PanicTestFunc defines a func that should be passed to the assert.Panics and assert.NotPanics
@@ -981,7 +946,6 @@ type PanicTestFunc func()
 
 // didPanic returns true if the function passed to it panics. Otherwise, it returns false.
 func didPanic(f PanicTestFunc) (bool, any, string) {
-
 	didPanic := false
 	var message any
 	var stack string
@@ -1000,19 +964,16 @@ func didPanic(f PanicTestFunc) (bool, any, string) {
 	}()
 
 	return didPanic, message, stack
-
 }
 
 // Panics asserts that the code inside the specified PanicTestFunc panics.
-//
-//   assert.Panics(t, func(){ GoCrazy() })
-func Panics(t TestingT, f PanicTestFunc, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) Panics(f PanicTestFunc, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 
 	if funcDidPanic, panicValue, _ := didPanic(f); !funcDidPanic {
-		return Fail(t, fmt.Sprintf("func %#v should panic\n\tPanic value:\t%#v", f, panicValue), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("func %#v should panic\n\tPanic value:\t%#v", f, panicValue), msgAndArgs...)
 	}
 
 	return true
@@ -1020,19 +981,17 @@ func Panics(t TestingT, f PanicTestFunc, msgAndArgs ...any) bool {
 
 // PanicsWithValue asserts that the code inside the specified PanicTestFunc panics, and that
 // the recovered panic value equals the expected panic value.
-//
-//   assert.PanicsWithValue(t, "crazy error", func(){ GoCrazy() })
-func PanicsWithValue(t TestingT, expected any, f PanicTestFunc, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) PanicsWithValue(expected any, f PanicTestFunc, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 
 	funcDidPanic, panicValue, panickedStack := didPanic(f)
 	if !funcDidPanic {
-		return Fail(t, fmt.Sprintf("func %#v should panic\n\tPanic value:\t%#v", f, panicValue), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("func %#v should panic\n\tPanic value:\t%#v", f, panicValue), msgAndArgs...)
 	}
 	if panicValue != expected {
-		return Fail(t, fmt.Sprintf("func %#v should panic with value:\t%#v\n\tPanic value:\t%#v\n\tPanic stack:\t%s", f, expected, panicValue, panickedStack), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("func %#v should panic with value:\t%#v\n\tPanic value:\t%#v\n\tPanic stack:\t%s", f, expected, panicValue, panickedStack), msgAndArgs...)
 	}
 
 	return true
@@ -1041,51 +1000,45 @@ func PanicsWithValue(t TestingT, expected any, f PanicTestFunc, msgAndArgs ...an
 // PanicsWithError asserts that the code inside the specified PanicTestFunc
 // panics, and that the recovered panic value is an error that satisfies the
 // EqualError comparison.
-//
-//   assert.PanicsWithError(t, "crazy error", func(){ GoCrazy() })
-func PanicsWithError(t TestingT, errString string, f PanicTestFunc, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) PanicsWithError(errString string, f PanicTestFunc, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 
 	funcDidPanic, panicValue, panickedStack := didPanic(f)
 	if !funcDidPanic {
-		return Fail(t, fmt.Sprintf("func %#v should panic\n\tPanic value:\t%#v", f, panicValue), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("func %#v should panic\n\tPanic value:\t%#v", f, panicValue), msgAndArgs...)
 	}
 	panicErr, ok := panicValue.(error)
 	if !ok || panicErr.Error() != errString {
-		return Fail(t, fmt.Sprintf("func %#v should panic with error message:\t%#v\n\tPanic value:\t%#v\n\tPanic stack:\t%s", f, errString, panicValue, panickedStack), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("func %#v should panic with error message:\t%#v\n\tPanic value:\t%#v\n\tPanic stack:\t%s", f, errString, panicValue, panickedStack), msgAndArgs...)
 	}
 
 	return true
 }
 
 // NotPanics asserts that the code inside the specified PanicTestFunc does NOT panic.
-//
-//   assert.NotPanics(t, func(){ RemainCalm() })
-func NotPanics(t TestingT, f PanicTestFunc, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) NotPanics(f PanicTestFunc, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 
 	if funcDidPanic, panicValue, panickedStack := didPanic(f); funcDidPanic {
-		return Fail(t, fmt.Sprintf("func %#v should not panic\n\tPanic value:\t%v\n\tPanic stack:\t%s", f, panicValue, panickedStack), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("func %#v should not panic\n\tPanic value:\t%v\n\tPanic stack:\t%s", f, panicValue, panickedStack), msgAndArgs...)
 	}
 
 	return true
 }
 
 // WithinDuration asserts that the two times are within duration delta of each other.
-//
-//   assert.WithinDuration(t, time.Now(), time.Now(), 10*time.Second)
-func WithinDuration(t TestingT, expected, actual time.Time, delta time.Duration, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) WithinDuration(expected, actual time.Time, delta time.Duration, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 
 	dt := expected.Sub(actual)
 	if dt < -delta || dt > delta {
-		return Fail(t, fmt.Sprintf("Max difference between %v and %v allowed is %v, but difference was %v", expected, actual, delta, dt), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("Max difference between %v and %v allowed is %v, but difference was %v", expected, actual, delta, dt), msgAndArgs...)
 	}
 
 	return true
@@ -1130,10 +1083,8 @@ func toFloat(x any) (float64, bool) {
 }
 
 // InDelta asserts that the two numerals are within delta of each other.
-//
-// 	 assert.InDelta(t, math.Pi, 22/7.0, 0.01)
-func InDelta(t TestingT, expected, actual any, delta float64, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) InDelta(expected, actual any, delta float64, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 
@@ -1141,7 +1092,7 @@ func InDelta(t TestingT, expected, actual any, delta float64, msgAndArgs ...any)
 	bf, bok := toFloat(actual)
 
 	if !aok || !bok {
-		return Fail(t, "Parameters must be numerical", msgAndArgs...)
+		return a.Fail("Parameters must be numerical", msgAndArgs...)
 	}
 
 	if math.IsNaN(af) && math.IsNaN(bf) {
@@ -1149,39 +1100,38 @@ func InDelta(t TestingT, expected, actual any, delta float64, msgAndArgs ...any)
 	}
 
 	if math.IsNaN(af) {
-		return Fail(t, "Expected must not be NaN", msgAndArgs...)
+		return a.Fail("Expected must not be NaN", msgAndArgs...)
 	}
 
 	if math.IsNaN(bf) {
-		return Fail(t, fmt.Sprintf("Expected %v with delta %v, but was NaN", expected, delta), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("Expected %v with delta %v, but was NaN", expected, delta), msgAndArgs...)
 	}
 
 	dt := af - bf
 	if dt < -delta || dt > delta {
-		return Fail(t, fmt.Sprintf("Max difference between %v and %v allowed is %v, but difference was %v", expected, actual, delta, dt), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("Max difference between %v and %v allowed is %v, but difference was %v", expected, actual, delta, dt), msgAndArgs...)
 	}
 
 	return true
 }
 
 // InDeltaSlice is the same as InDelta, except it compares two slices.
-func InDeltaSlice(t TestingT, expected, actual any, delta float64, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) InDeltaSlice(expected, actual any, delta float64, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 	if expected == nil || actual == nil ||
 		reflect.TypeOf(actual).Kind() != reflect.Slice ||
 		reflect.TypeOf(expected).Kind() != reflect.Slice {
-		return Fail(t, "Parameters must be slice", msgAndArgs...)
+		return a.Fail("Parameters must be slice", msgAndArgs...)
 	}
 
 	actualSlice := reflect.ValueOf(actual)
 	expectedSlice := reflect.ValueOf(expected)
 
 	for i := 0; i < actualSlice.Len(); i++ {
-		result := InDelta(t, actualSlice.Index(i).Interface(), expectedSlice.Index(i).Interface(), delta, msgAndArgs...)
-		if !result {
-			return result
+		if !a.InDelta(actualSlice.Index(i).Interface(), expectedSlice.Index(i).Interface(), delta, msgAndArgs...) {
+			return false
 		}
 	}
 
@@ -1189,21 +1139,21 @@ func InDeltaSlice(t TestingT, expected, actual any, delta float64, msgAndArgs ..
 }
 
 // InDeltaMapValues is the same as InDelta, but it compares all values between two maps. Both maps must have exactly the same keys.
-func InDeltaMapValues(t TestingT, expected, actual any, delta float64, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) InDeltaMapValues(expected, actual any, delta float64, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 	if expected == nil || actual == nil ||
 		reflect.TypeOf(actual).Kind() != reflect.Map ||
 		reflect.TypeOf(expected).Kind() != reflect.Map {
-		return Fail(t, "Arguments must be maps", msgAndArgs...)
+		return a.Fail("Arguments must be maps", msgAndArgs...)
 	}
 
 	expectedMap := reflect.ValueOf(expected)
 	actualMap := reflect.ValueOf(actual)
 
 	if expectedMap.Len() != actualMap.Len() {
-		return Fail(t, "Arguments must have the same number of keys", msgAndArgs...)
+		return a.Fail("Arguments must have the same number of keys", msgAndArgs...)
 	}
 
 	for _, k := range expectedMap.MapKeys() {
@@ -1211,20 +1161,14 @@ func InDeltaMapValues(t TestingT, expected, actual any, delta float64, msgAndArg
 		av := actualMap.MapIndex(k)
 
 		if !ev.IsValid() {
-			return Fail(t, fmt.Sprintf("missing key %q in expected map", k), msgAndArgs...)
+			return a.Fail(fmt.Sprintf("missing key %q in expected map", k), msgAndArgs...)
 		}
 
 		if !av.IsValid() {
-			return Fail(t, fmt.Sprintf("missing key %q in actual map", k), msgAndArgs...)
+			return a.Fail(fmt.Sprintf("missing key %q in actual map", k), msgAndArgs...)
 		}
 
-		if !InDelta(
-			t,
-			ev.Interface(),
-			av.Interface(),
-			delta,
-			msgAndArgs...,
-		) {
+		if !a.InDelta(ev.Interface(), av.Interface(), delta, msgAndArgs...) {
 			return false
 		}
 	}
@@ -1255,19 +1199,19 @@ func calcRelativeError(expected, actual any) (float64, error) {
 }
 
 // InEpsilon asserts that expected and actual have a relative error less than epsilon
-func InEpsilon(t TestingT, expected, actual any, epsilon float64, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) InEpsilon(expected, actual any, epsilon float64, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 	if math.IsNaN(epsilon) {
-		return Fail(t, "epsilon must not be NaN")
+		return a.Fail("epsilon must not be NaN")
 	}
 	actualEpsilon, err := calcRelativeError(expected, actual)
 	if err != nil {
-		return Fail(t, err.Error(), msgAndArgs...)
+		return a.Fail(err.Error(), msgAndArgs...)
 	}
 	if actualEpsilon > epsilon {
-		return Fail(t, fmt.Sprintf("Relative error is too high: %#v (expected)\n"+
+		return a.Fail(fmt.Sprintf("Relative error is too high: %#v (expected)\n"+
 			"        < %#v (actual)", epsilon, actualEpsilon), msgAndArgs...)
 	}
 
@@ -1275,23 +1219,22 @@ func InEpsilon(t TestingT, expected, actual any, epsilon float64, msgAndArgs ...
 }
 
 // InEpsilonSlice is the same as InEpsilon, except it compares each value from two slices.
-func InEpsilonSlice(t TestingT, expected, actual any, epsilon float64, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) InEpsilonSlice(expected, actual any, epsilon float64, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 	if expected == nil || actual == nil ||
 		reflect.TypeOf(actual).Kind() != reflect.Slice ||
 		reflect.TypeOf(expected).Kind() != reflect.Slice {
-		return Fail(t, "Parameters must be slice", msgAndArgs...)
+		return a.Fail("Parameters must be slice", msgAndArgs...)
 	}
 
 	actualSlice := reflect.ValueOf(actual)
 	expectedSlice := reflect.ValueOf(expected)
 
 	for i := 0; i < actualSlice.Len(); i++ {
-		result := InEpsilon(t, actualSlice.Index(i).Interface(), expectedSlice.Index(i).Interface(), epsilon)
-		if !result {
-			return result
+		if !a.InEpsilon(actualSlice.Index(i).Interface(), expectedSlice.Index(i).Interface(), epsilon) {
+			return false
 		}
 	}
 
@@ -1422,50 +1365,50 @@ func (a *Assertions) NotRegexp(rx any, str any, msgAndArgs ...any) bool {
 }
 
 // Zero asserts that i is the zero value for its type.
-func Zero(t TestingT, i any, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) Zero(i any, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 	if i != nil && !reflect.DeepEqual(i, reflect.Zero(reflect.TypeOf(i)).Interface()) {
-		return Fail(t, fmt.Sprintf("Should be zero, but was %v", i), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("Should be zero, but was %v", i), msgAndArgs...)
 	}
 	return true
 }
 
 // NotZero asserts that i is not the zero value for its type.
-func NotZero(t TestingT, i any, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) NotZero(i any, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 	if i == nil || reflect.DeepEqual(i, reflect.Zero(reflect.TypeOf(i)).Interface()) {
-		return Fail(t, fmt.Sprintf("Should not be zero, but was %v", i), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("Should not be zero, but was %v", i), msgAndArgs...)
 	}
 	return true
 }
 
 // FileExists checks whether a file exists in the given path. It also fails if
 // the path points to a directory or there is an error when trying to check the file.
-func FileExists(t TestingT, path string, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) FileExists(path string, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 	info, err := os.Lstat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return Fail(t, fmt.Sprintf("unable to find file %q", path), msgAndArgs...)
+			return a.Fail(fmt.Sprintf("unable to find file %q", path), msgAndArgs...)
 		}
-		return Fail(t, fmt.Sprintf("error when running os.Lstat(%q): %s", path, err), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("error when running os.Lstat(%q): %s", path, err), msgAndArgs...)
 	}
 	if info.IsDir() {
-		return Fail(t, fmt.Sprintf("%q is a directory", path), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("%q is a directory", path), msgAndArgs...)
 	}
 	return true
 }
 
 // NoFileExists checks whether a file does not exist in a given path. It fails
 // if the path points to an existing _file_ only.
-func NoFileExists(t TestingT, path string, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) NoFileExists(path string, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 	info, err := os.Lstat(path)
@@ -1475,32 +1418,32 @@ func NoFileExists(t TestingT, path string, msgAndArgs ...any) bool {
 	if info.IsDir() {
 		return true
 	}
-	return Fail(t, fmt.Sprintf("file %q exists", path), msgAndArgs...)
+	return a.Fail(fmt.Sprintf("file %q exists", path), msgAndArgs...)
 }
 
 // DirExists checks whether a directory exists in the given path. It also fails
 // if the path is a file rather a directory or there is an error checking whether it exists.
-func DirExists(t TestingT, path string, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) DirExists(path string, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 	info, err := os.Lstat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return Fail(t, fmt.Sprintf("unable to find file %q", path), msgAndArgs...)
+			return a.Fail(fmt.Sprintf("unable to find file %q", path), msgAndArgs...)
 		}
-		return Fail(t, fmt.Sprintf("error when running os.Lstat(%q): %s", path, err), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("error when running os.Lstat(%q): %s", path, err), msgAndArgs...)
 	}
 	if !info.IsDir() {
-		return Fail(t, fmt.Sprintf("%q is a file", path), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("%q is a file", path), msgAndArgs...)
 	}
 	return true
 }
 
 // NoDirExists checks whether a directory does not exist in the given path.
 // It fails if the path points to an existing _directory_ only.
-func NoDirExists(t TestingT, path string, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) NoDirExists(path string, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 	info, err := os.Lstat(path)
@@ -1513,7 +1456,7 @@ func NoDirExists(t TestingT, path string, msgAndArgs ...any) bool {
 	if !info.IsDir() {
 		return true
 	}
-	return Fail(t, fmt.Sprintf("directory %q exists", path), msgAndArgs...)
+	return a.Fail(fmt.Sprintf("directory %q exists", path), msgAndArgs...)
 }
 
 // JSONEq asserts that two JSON strings are equivalent.
@@ -1638,10 +1581,8 @@ type tHelper interface {
 
 // Eventually asserts that given condition will be met in waitFor time,
 // periodically checking target function each tick.
-//
-//    assert.Eventually(t, func() bool { return true; }, time.Second, 10*time.Millisecond)
-func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) Eventually(condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 
@@ -1656,7 +1597,7 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 	for tick := ticker.C; ; {
 		select {
 		case <-timer.C:
-			return Fail(t, "Condition never satisfied", msgAndArgs...)
+			return a.Fail("Condition never satisfied", msgAndArgs...)
 		case <-tick:
 			tick = nil
 			go func() { ch <- condition() }()
@@ -1671,10 +1612,8 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 
 // Never asserts that the given condition doesn't satisfy in waitFor time,
 // periodically checking the target function each tick.
-//
-//    assert.Never(t, func() bool { return false; }, time.Second, 10*time.Millisecond)
-func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) Never(condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 
@@ -1695,7 +1634,7 @@ func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.D
 			go func() { ch <- condition() }()
 		case v := <-ch:
 			if v {
-				return Fail(t, "Condition satisfied", msgAndArgs...)
+				return a.Fail("Condition satisfied", msgAndArgs...)
 			}
 			tick = ticker.C
 		}
