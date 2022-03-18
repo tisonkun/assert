@@ -6,7 +6,7 @@ import (
 )
 
 // isOrdered checks that collection contains elements in order.
-func (a *Assertions) isOrdered(object any, allowedComparesResults []CompareType, failMessage string, msgAndArgs ...any) any {
+func (a *Assertions) isOrdered(object any, allowedComparesResults []CompareType, failMessage string, msgAndArgs ...any) bool {
 	objKind := reflect.TypeOf(object).Kind()
 	if objKind != reflect.Slice && objKind != reflect.Array {
 		return a.Fail(fmt.Sprintf("Can not test elements in order for type \"%s\"", objKind), msgAndArgs...)
@@ -16,7 +16,7 @@ func (a *Assertions) isOrdered(object any, allowedComparesResults []CompareType,
 	objLen := objValue.Len()
 
 	if objLen <= 1 {
-		return nil
+		return true
 	}
 
 	value := objValue.Index(0)
@@ -41,25 +41,25 @@ func (a *Assertions) isOrdered(object any, allowedComparesResults []CompareType,
 		}
 	}
 
-	return nil
+	return true
 }
 
 // IsIncreasing asserts that the collection is increasing
-func (a *Assertions) IsIncreasing(object any, msgAndArgs ...any) any {
+func (a *Assertions) IsIncreasing(object any, msgAndArgs ...any) bool {
 	return a.isOrdered(object, []CompareType{compareLess}, "\"%v\" is not less than \"%v\"", msgAndArgs...)
 }
 
 // IsNonIncreasing asserts that the collection is not increasing
-func (a *Assertions) IsNonIncreasing(object any, msgAndArgs ...any) any {
+func (a *Assertions) IsNonIncreasing(object any, msgAndArgs ...any) bool {
 	return a.isOrdered(object, []CompareType{compareEqual, compareGreater}, "\"%v\" is not greater than or equal to \"%v\"", msgAndArgs...)
 }
 
 // IsDecreasing asserts that the collection is decreasing
-func (a *Assertions) IsDecreasing(object any, msgAndArgs ...any) any {
+func (a *Assertions) IsDecreasing(object any, msgAndArgs ...any) bool {
 	return a.isOrdered(object, []CompareType{compareGreater}, "\"%v\" is not greater than \"%v\"", msgAndArgs...)
 }
 
 // IsNonDecreasing asserts that the collection is not decreasing
-func (a *Assertions) IsNonDecreasing(object any, msgAndArgs ...any) any {
+func (a *Assertions) IsNonDecreasing(object any, msgAndArgs ...any) bool {
 	return a.isOrdered(object, []CompareType{compareLess, compareEqual}, "\"%v\" is not less than or equal to \"%v\"", msgAndArgs...)
 }

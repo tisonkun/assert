@@ -329,7 +329,7 @@ func compare(obj1, obj2 any, kind reflect.Kind) (CompareType, bool) {
 }
 
 // Greater asserts that the first element is greater than the second
-func (a *Assertions) Greater(e1 any, e2 any, msgAndArgs ...any) any {
+func (a *Assertions) Greater(e1 any, e2 any, msgAndArgs ...any) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
@@ -337,7 +337,7 @@ func (a *Assertions) Greater(e1 any, e2 any, msgAndArgs ...any) any {
 }
 
 // GreaterOrEqual asserts that the first element is greater than or equal to the second
-func (a *Assertions) GreaterOrEqual(e1 any, e2 any, msgAndArgs ...any) any {
+func (a *Assertions) GreaterOrEqual(e1 any, e2 any, msgAndArgs ...any) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
@@ -345,7 +345,7 @@ func (a *Assertions) GreaterOrEqual(e1 any, e2 any, msgAndArgs ...any) any {
 }
 
 // Less asserts that the first element is less than the second
-func (a *Assertions) Less(e1 any, e2 any, msgAndArgs ...any) any {
+func (a *Assertions) Less(e1 any, e2 any, msgAndArgs ...any) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
@@ -353,7 +353,7 @@ func (a *Assertions) Less(e1 any, e2 any, msgAndArgs ...any) any {
 }
 
 // LessOrEqual asserts that the first element is less than or equal to the second
-func (a *Assertions) LessOrEqual(e1 any, e2 any, msgAndArgs ...any) any {
+func (a *Assertions) LessOrEqual(e1 any, e2 any, msgAndArgs ...any) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
@@ -361,7 +361,7 @@ func (a *Assertions) LessOrEqual(e1 any, e2 any, msgAndArgs ...any) any {
 }
 
 // Positive asserts that the specified element is positive
-func (a *Assertions) Positive(e any, msgAndArgs ...any) any {
+func (a *Assertions) Positive(e any, msgAndArgs ...any) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
@@ -370,7 +370,7 @@ func (a *Assertions) Positive(e any, msgAndArgs ...any) any {
 }
 
 // Negative asserts that the specified element is negative
-func (a *Assertions) Negative(e any, msgAndArgs ...any) any {
+func (a *Assertions) Negative(e any, msgAndArgs ...any) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
@@ -378,7 +378,7 @@ func (a *Assertions) Negative(e any, msgAndArgs ...any) any {
 	return a.compareTwoValues(e, zero.Interface(), []CompareType{compareLess}, "\"%v\" is not negative", msgAndArgs...)
 }
 
-func (a *Assertions) compareTwoValues(e1 any, e2 any, allowedComparesResults []CompareType, failMessage string, msgAndArgs ...any) any {
+func (a *Assertions) compareTwoValues(e1 any, e2 any, allowedComparesResults []CompareType, failMessage string, msgAndArgs ...any) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
@@ -398,7 +398,7 @@ func (a *Assertions) compareTwoValues(e1 any, e2 any, allowedComparesResults []C
 		return a.Fail(fmt.Sprintf(failMessage, e1, e2), msgAndArgs...)
 	}
 
-	return nil
+	return true
 }
 
 func containsValue(values []CompareType, value CompareType) bool {

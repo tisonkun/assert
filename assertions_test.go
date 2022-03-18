@@ -16,6 +16,10 @@ import (
 	"time"
 )
 
+func NewWithOnFailureNoop(t TestingT) *Assertions {
+	return New(t).WithOnFailure(func(TestingT) {})
+}
+
 var (
 	i     any
 	zeros = []any{
@@ -268,7 +272,7 @@ func Test_samePointers(t *testing.T) {
 	tests := []struct {
 		name      string
 		args      args
-		assertion func(*Assertions, bool, ...any) any
+		assertion func(*Assertions, bool, ...any) bool
 	}{
 		{
 			name:      "1 != 2",
@@ -408,47 +412,47 @@ func TestFormatUnequalValues(t *testing.T) {
 }
 
 func TestNotNil(t *testing.T) {
-	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
-	if mockAssertion.NotNil(new(AssertionTesterConformingObject)) != nil {
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
+	if !mockAssertion.NotNil(new(AssertionTesterConformingObject)) {
 		t.Error("NotNil should return nil: object is not nil")
 	}
-	if mockAssertion.NotNil(nil) == nil {
+	if mockAssertion.NotNil(nil) {
 		t.Error("NotNil should return not-nil value: object is nil")
 	}
-	if mockAssertion.NotNil((*struct{})(nil)) == nil {
+	if mockAssertion.NotNil((*struct{})(nil)) {
 		t.Error("NotNil should return not-nil value: object is (*struct{})(nil)")
 	}
 }
 
 func TestNil(t *testing.T) {
-	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
-	if mockAssertion.Nil(nil) != nil {
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
+	if !mockAssertion.Nil(nil) {
 		t.Error("Nil should return nil: object is nil")
 	}
-	if mockAssertion.Nil((*struct{})(nil)) != nil {
+	if !mockAssertion.Nil((*struct{})(nil)) {
 		t.Error("Nil should return nil: object is (*struct{})(nil)")
 	}
-	if mockAssertion.Nil(new(AssertionTesterConformingObject)) == nil {
+	if mockAssertion.Nil(new(AssertionTesterConformingObject)) {
 		t.Error("Nil should return not-nil value: object is not nil")
 	}
 }
 
 func TestTrue(t *testing.T) {
-	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
-	if mockAssertion.True(true) != nil {
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
+	if !mockAssertion.True(true) {
 		t.Error("True should return true")
 	}
-	if mockAssertion.True(false) == nil {
+	if mockAssertion.True(false) {
 		t.Error("True should return false")
 	}
 }
 
 func TestFalse(t *testing.T) {
-	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
-	if mockAssertion.False(false) != nil {
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
+	if !mockAssertion.False(false) {
 		t.Error("False should return true")
 	}
-	if mockAssertion.False(true) == nil {
+	if mockAssertion.False(true) {
 		t.Error("False should return false")
 	}
 }
@@ -600,11 +604,11 @@ func TestContainsNotContains(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(fmt.Sprintf("Contains(%#v, %#v)", c.expected, c.actual), func(t *testing.T) {
-			mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
+			mockAssertion := NewWithOnFailureNoop(new(testing.T))
 			res := mockAssertion.Contains(c.expected, c.actual)
 
-			if (res == nil) != c.result {
-				if res == nil {
+			if res != c.result {
+				if res {
 					t.Errorf("Contains(%#v, %#v) should return nil:\n\t%#v contains %#v", c.expected, c.actual, c.expected, c.actual)
 				} else {
 					t.Errorf("Contains(%#v, %#v) should return not-nil value:\n\t%#v does not contain %#v", c.expected, c.actual, c.expected, c.actual)
@@ -615,12 +619,12 @@ func TestContainsNotContains(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(fmt.Sprintf("NotContains(%#v, %#v)", c.expected, c.actual), func(t *testing.T) {
-			mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
+			mockAssertion := NewWithOnFailureNoop(new(testing.T))
 			res := mockAssertion.NotContains(c.expected, c.actual)
 
 			// NotContains should be inverse of Contains. If it's not, something is wrong
 			if res == mockAssertion.Contains(c.expected, c.actual) {
-				if res == nil {
+				if res {
 					t.Errorf("NotContains(%#v, %#v) should return nil:\n\t%#v does not contains %#v", c.expected, c.actual, c.expected, c.actual)
 				} else {
 					t.Errorf("NotContains(%#v, %#v) should return not-nil value:\n\t%#v contains %#v", c.expected, c.actual, c.expected, c.actual)
@@ -632,7 +636,7 @@ func TestContainsNotContains(t *testing.T) {
 
 func TestContainsFailMessage(t *testing.T) {
 	out := &outputT{buf: bytes.NewBuffer(nil)}
-	outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
+	outAssertion := New(out)
 	outAssertion.Contains("hello world", errors.New("hello"))
 	expectedFail := "\"hello world\" does not contain &errors.errorString{s:\"hello\"}"
 	actualFail := out.buf.String()
@@ -643,7 +647,7 @@ func TestContainsFailMessage(t *testing.T) {
 
 func TestContainsNotContainsOnNilValue(t *testing.T) {
 	out := &outputT{buf: bytes.NewBuffer(nil)}
-	outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
+	outAssertion := New(out)
 	outAssertion.Contains(nil, "key")
 	expectedFail := "<nil> could not be applied builtin len()"
 	actualFail := out.buf.String()
@@ -652,7 +656,7 @@ func TestContainsNotContainsOnNilValue(t *testing.T) {
 	}
 
 	out = &outputT{buf: bytes.NewBuffer(nil)}
-	outAssertion = New(out).WithOnFailure(func(TestingT) any { return -1 })
+	outAssertion = New(out)
 	outAssertion.NotContains(nil, "key")
 	expectedFail = "\"%!s(<nil>)\" could not be applied builtin len()"
 	actualFail = out.buf.String()
@@ -1012,17 +1016,17 @@ func TestNotPanics(t *testing.T) {
 }
 
 func TestNoError(t *testing.T) {
-	mockAssertion := New(new(testing.T)).WithOnFailure(func(TestingT) any { return -1 })
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
 
 	// start with a nil error
 	var err error
 
-	New(t).Nil(mockAssertion.NoError(err), "NoError should return True for nil arg")
+	New(t).True(mockAssertion.NoError(err), "NoError should return True for nil arg")
 
 	// now set an error
 	err = errors.New("some error")
 
-	New(t).NotNil(mockAssertion.NoError(err), "NoError with error should return False")
+	New(t).False(mockAssertion.NoError(err), "NoError with error should return False")
 
 	// returning an empty error interface
 	err = func() error {
@@ -1034,7 +1038,7 @@ func TestNoError(t *testing.T) {
 		t.Errorf("Error should be nil due to empty interface: %s", err)
 	}
 
-	New(t).NotNil(mockAssertion.NoError(err), "NoError should fail with empty error interface")
+	New(t).False(mockAssertion.NoError(err), "NoError should fail with empty error interface")
 }
 
 type customError struct{}
@@ -1042,17 +1046,17 @@ type customError struct{}
 func (*customError) Error() string { return "fail" }
 
 func TestError(t *testing.T) {
-	mockAssertion := New(new(testing.T)).WithOnFailure(func(TestingT) any { return -1 })
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
 
 	// start with a nil error
 	var err error
 
-	New(t).NotNil(mockAssertion.Error(err), "Error should return False for nil arg")
+	New(t).False(mockAssertion.Error(err), "Error should return False for nil arg")
 
 	// now set an error
 	err = errors.New("some error")
 
-	New(t).Nil(mockAssertion.Error(err), "Error with error should return True")
+	New(t).True(mockAssertion.Error(err), "Error with error should return True")
 
 	// returning an empty error interface
 	err = func() error {
@@ -1064,34 +1068,34 @@ func TestError(t *testing.T) {
 		t.Errorf("Error should be nil due to empty interface: %s", err)
 	}
 
-	New(t).Nil(mockAssertion.Error(err), "Error should pass with empty error interface")
+	New(t).True(mockAssertion.Error(err), "Error should pass with empty error interface")
 }
 
 func TestEqualError(t *testing.T) {
-	mockAssertion := New(new(testing.T)).WithOnFailure(func(TestingT) any { return -1 })
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
 
 	// start with a nil error
 	var err error
-	New(t).NotNil(mockAssertion.EqualError(err, ""), "EqualError should return false for nil arg")
+	New(t).False(mockAssertion.EqualError(err, ""), "EqualError should return false for nil arg")
 
 	// now set an error
 	err = errors.New("some error")
-	New(t).NotNil(mockAssertion.EqualError(err, "Not some error"), "EqualError should return false for different error string")
-	New(t).Nil(mockAssertion.EqualError(err, "some error"), "EqualError should return true")
+	New(t).False(mockAssertion.EqualError(err, "Not some error"), "EqualError should return false for different error string")
+	New(t).True(mockAssertion.EqualError(err, "some error"), "EqualError should return true")
 }
 
 func TestErrorContains(t *testing.T) {
-	mockAssertion := New(new(testing.T)).WithOnFailure(func(TestingT) any { return -1 })
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
 
 	// start with a nil error
 	var err error
-	New(t).NotNil(mockAssertion.ErrorContains(err, ""), "ErrorContains should return false for nil arg")
+	New(t).False(mockAssertion.ErrorContains(err, ""), "ErrorContains should return false for nil arg")
 
 	// now set an error
 	err = errors.New("some error: another error")
-	New(t).NotNil(mockAssertion.ErrorContains(err, "bad error"), "ErrorContains should return false for different error string")
-	New(t).Nil(mockAssertion.ErrorContains(err, "some error"), "ErrorContains should return true")
-	New(t).Nil(mockAssertion.ErrorContains(err, "another error"), "ErrorContains should return true")
+	New(t).False(mockAssertion.ErrorContains(err, "bad error"), "ErrorContains should return false for different error string")
+	New(t).True(mockAssertion.ErrorContains(err, "some error"), "ErrorContains should return true")
+	New(t).True(mockAssertion.ErrorContains(err, "another error"), "ErrorContains should return true")
 }
 
 func TestIsEmpty(t *testing.T) {
@@ -1383,7 +1387,7 @@ func TestInDeltaMapValues(t *testing.T) {
 		title  string
 		expect any
 		actual any
-		f      func(bool, ...any) any
+		f      func(bool, ...any) bool
 		delta  float64
 	}{
 		{
@@ -2102,8 +2106,8 @@ func TestDiffRace(t *testing.T) {
 
 func TestFailNow(t *testing.T) {
 	out := &outputT{buf: bytes.NewBuffer(nil)}
-	mockAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
-	New(t).NotNil(mockAssertion.FailNow("failed"))
+	mockAssertion := New(out)
+	New(t).False(mockAssertion.FailNow("failed"))
 }
 
 func TestBytesEqual(t *testing.T) {

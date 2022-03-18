@@ -25,22 +25,21 @@ import (
 // Assertions provides assertion methods around the TestingT interface.
 type Assertions struct {
 	t         TestingT
-	onFailure func(TestingT) any
+	onFailure func(TestingT)
 }
 
 // New makes a new Assertions object for the specified TestingT.
 func New(t TestingT) *Assertions {
 	return &Assertions{
 		t: t,
-		onFailure: func(t TestingT) any {
+		onFailure: func(t TestingT) {
 			t.FailNow()
-			return errors.New("(*Assertions).FailNow")
 		},
 	}
 }
 
 // WithOnFailure returns a new Assertions with customized behaviour on failure.
-func (a *Assertions) WithOnFailure(f func(TestingT) any) *Assertions {
+func (a *Assertions) WithOnFailure(f func(TestingT)) *Assertions {
 	return &Assertions{
 		t:         a.t,
 		onFailure: f,
@@ -222,16 +221,19 @@ func indentMessageLines(message string, longestLabelLen int) string {
 }
 
 // FailNow fails test
-func (a *Assertions) FailNow(failureMessage string, msgAndArgs ...any) any {
+func (a *Assertions) FailNow(failureMessage string, msgAndArgs ...any) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
-	r := a.Fail(failureMessage, msgAndArgs...)
+	a.Fail(failureMessage, msgAndArgs...)
 	a.t.FailNow()
-	return r
+	return false
 }
 
-func (a *Assertions) Fail(failureMessage string, msgAndArgs ...any) any {
+// Fail reports a failure through
+func (a *Assertions) Fail(failureMessage string, msgAndArgs ...any) bool {
+	defer a.onFailure(a.t)
+
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
@@ -254,7 +256,7 @@ func (a *Assertions) Fail(failureMessage string, msgAndArgs ...any) any {
 	}
 
 	a.t.Errorf("\n%s", ""+labeledOutput(content...))
-	return a.onFailure(a.t)
+	return false
 }
 
 // Fail reports a failure through
@@ -513,9 +515,9 @@ func Exactly(t TestingT, expected, actual any, msgAndArgs ...any) bool {
 }
 
 // NotNil asserts that the specified object is not nil.
-func (a *Assertions) NotNil(object any, msgAndArgs ...any) any {
+func (a *Assertions) NotNil(object any, msgAndArgs ...any) bool {
 	if !isNil(object) {
-		return nil
+		return true
 	}
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -557,9 +559,9 @@ func isNil(object any) bool {
 }
 
 // Nil asserts that the specified object is nil.
-func (a *Assertions) Nil(object any, msgAndArgs ...any) any {
+func (a *Assertions) Nil(object any, msgAndArgs ...any) bool {
 	if isNil(object) {
-		return nil
+		return true
 	}
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -663,25 +665,25 @@ func Len(t TestingT, object any, length int, msgAndArgs ...any) bool {
 }
 
 // True asserts that the specified value is true.
-func (a *Assertions) True(value bool, msgAndArgs ...any) any {
+func (a *Assertions) True(value bool, msgAndArgs ...any) bool {
 	if !value {
 		if h, ok := a.t.(tHelper); ok {
 			h.Helper()
 		}
 		return a.Fail("Should be true", msgAndArgs...)
 	}
-	return nil
+	return true
 }
 
 // False asserts that the specified value is false.
-func (a *Assertions) False(value bool, msgAndArgs ...any) any {
+func (a *Assertions) False(value bool, msgAndArgs ...any) bool {
 	if value {
 		if h, ok := a.t.(tHelper); ok {
 			h.Helper()
 		}
 		return a.Fail("Should be false", msgAndArgs...)
 	}
-	return nil
+	return true
 }
 
 // NotEqual asserts that the specified values are NOT equal.
@@ -767,7 +769,7 @@ func containsElement(list any, element any) (ok, found bool) {
 
 // Contains asserts that the specified string, list(array, slice...) or map contains the
 // specified substring or element.
-func (a *Assertions) Contains(s, contains any, msgAndArgs ...any) any {
+func (a *Assertions) Contains(s, contains any, msgAndArgs ...any) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
@@ -780,12 +782,12 @@ func (a *Assertions) Contains(s, contains any, msgAndArgs ...any) any {
 		return a.Fail(fmt.Sprintf("%#v does not contain %#v", s, contains), msgAndArgs...)
 	}
 
-	return nil
+	return true
 }
 
 // NotContains asserts that the specified string, list(array, slice...) or map does NOT contain the
 // specified substring or element.
-func (a *Assertions) NotContains(s, contains any, msgAndArgs ...any) any {
+func (a *Assertions) NotContains(s, contains any, msgAndArgs ...any) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
@@ -798,7 +800,7 @@ func (a *Assertions) NotContains(s, contains any, msgAndArgs ...any) any {
 		return a.Fail(fmt.Sprintf("\"%s\" should not contain \"%s\"", s, contains), msgAndArgs...)
 	}
 
-	return nil
+	return true
 }
 
 // Subset asserts that the specified list(array, slice...) contains all
@@ -1325,7 +1327,7 @@ func InEpsilonSlice(t TestingT, expected, actual any, epsilon float64, msgAndArg
 */
 
 // NoError asserts that a function returned no error (i.e. `nil`).
-func (a *Assertions) NoError(err error, msgAndArgs ...any) any {
+func (a *Assertions) NoError(err error, msgAndArgs ...any) bool {
 	if err != nil {
 		if h, ok := a.t.(tHelper); ok {
 			h.Helper()
@@ -1333,11 +1335,11 @@ func (a *Assertions) NoError(err error, msgAndArgs ...any) any {
 		return a.Fail(fmt.Sprintf("Received unexpected error:\n%+v", err), msgAndArgs...)
 	}
 
-	return nil
+	return true
 }
 
 // Error asserts that a function returned an error (i.e. not `nil`).
-func (a *Assertions) Error(err error, msgAndArgs ...any) any {
+func (a *Assertions) Error(err error, msgAndArgs ...any) bool {
 	if err == nil {
 		if h, ok := a.t.(tHelper); ok {
 			h.Helper()
@@ -1345,17 +1347,17 @@ func (a *Assertions) Error(err error, msgAndArgs ...any) any {
 		return a.Fail("An error is expected but got nil.", msgAndArgs...)
 	}
 
-	return nil
+	return true
 }
 
 // EqualError asserts that a function returned an error (i.e. not `nil`)
 // and that it is equal to the provided error.
-func (a *Assertions) EqualError(theError error, errString string, msgAndArgs ...any) any {
+func (a *Assertions) EqualError(theError error, errString string, msgAndArgs ...any) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
-	if r := a.Error(theError, msgAndArgs...); r != nil {
-		return r
+	if !a.Error(theError, msgAndArgs...) {
+		return false
 	}
 	expected := errString
 	actual := theError.Error()
@@ -1365,17 +1367,17 @@ func (a *Assertions) EqualError(theError error, errString string, msgAndArgs ...
 			"expected: %q\n"+
 			"actual  : %q", expected, actual), msgAndArgs...)
 	}
-	return nil
+	return true
 }
 
 // ErrorContains asserts that a function returned an error (i.e. not `nil`)
 // and that the error contains the specified substring.
-func (a *Assertions) ErrorContains(theError error, contains string, msgAndArgs ...any) any {
+func (a *Assertions) ErrorContains(theError error, contains string, msgAndArgs ...any) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
-	if r := a.Error(theError, msgAndArgs...); r != nil {
-		return r
+	if !a.Error(theError, msgAndArgs...) {
+		return false
 	}
 
 	actual := theError.Error()
@@ -1383,7 +1385,7 @@ func (a *Assertions) ErrorContains(theError error, contains string, msgAndArgs .
 		return a.Fail(fmt.Sprintf("Error %#v does not contain %#v", actual, contains), msgAndArgs...)
 	}
 
-	return nil
+	return true
 }
 
 // matchRegexp return true if a specified regexp matches a string.

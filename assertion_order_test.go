@@ -6,11 +6,11 @@ import (
 )
 
 func TestIsIncreasing(t *testing.T) {
-	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
-	New(t).Nil(mockAssertion.IsIncreasing([]int{1, 2}))
-	New(t).Nil(mockAssertion.IsIncreasing([]int{1, 2, 3, 4, 5}))
-	New(t).NotNil(mockAssertion.IsIncreasing([]int{1, 1}))
-	New(t).NotNil(mockAssertion.IsIncreasing([]int{2, 1}))
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
+	New(t).True(mockAssertion.IsIncreasing([]int{1, 2}))
+	New(t).True(mockAssertion.IsIncreasing([]int{1, 2, 3, 4, 5}))
+	New(t).False(mockAssertion.IsIncreasing([]int{1, 1}))
+	New(t).False(mockAssertion.IsIncreasing([]int{2, 1}))
 
 	// Check error report
 	for _, currCase := range []struct {
@@ -33,18 +33,18 @@ func TestIsIncreasing(t *testing.T) {
 		{collection: []float64{2.34, 1.23}, msg: `"2.34" is not less than "1.23"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
-		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
-		New(t).NotNil(outAssertion.IsIncreasing(currCase.collection))
+		outAssertion := New(out)
+		New(t).False(outAssertion.IsIncreasing(currCase.collection))
 		New(t).Contains(out.buf.String(), currCase.msg)
 	}
 }
 
 func TestIsNonIncreasing(t *testing.T) {
-	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
-	New(t).Nil(mockAssertion.IsNonIncreasing([]int{2, 1}))
-	New(t).Nil(mockAssertion.IsNonIncreasing([]int{5, 4, 4, 3, 2, 1}))
-	New(t).Nil(mockAssertion.IsNonIncreasing([]int{1, 1}))
-	New(t).NotNil(mockAssertion.IsNonIncreasing([]int{1, 2}))
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
+	New(t).True(mockAssertion.IsNonIncreasing([]int{2, 1}))
+	New(t).True(mockAssertion.IsNonIncreasing([]int{5, 4, 4, 3, 2, 1}))
+	New(t).True(mockAssertion.IsNonIncreasing([]int{1, 1}))
+	New(t).False(mockAssertion.IsNonIncreasing([]int{1, 2}))
 
 	// Check error report
 	for _, currCase := range []struct {
@@ -67,18 +67,18 @@ func TestIsNonIncreasing(t *testing.T) {
 		{collection: []float64{1.23, 2.34}, msg: `"1.23" is not greater than or equal to "2.34"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
-		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
-		New(t).NotNil(outAssertion.IsNonIncreasing(currCase.collection))
+		outAssertion := New(out)
+		New(t).False(outAssertion.IsNonIncreasing(currCase.collection))
 		New(t).Contains(out.buf.String(), currCase.msg)
 	}
 }
 
 func TestIsDecreasing(t *testing.T) {
-	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
-	New(t).Nil(mockAssertion.IsDecreasing([]int{2, 1}))
-	New(t).Nil(mockAssertion.IsDecreasing([]int{5, 4, 3, 2, 1}))
-	New(t).NotNil(mockAssertion.IsDecreasing([]int{1, 1}))
-	New(t).NotNil(mockAssertion.IsDecreasing([]int{1, 2}))
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
+	New(t).True(mockAssertion.IsDecreasing([]int{2, 1}))
+	New(t).True(mockAssertion.IsDecreasing([]int{5, 4, 3, 2, 1}))
+	New(t).False(mockAssertion.IsDecreasing([]int{1, 1}))
+	New(t).False(mockAssertion.IsDecreasing([]int{1, 2}))
 
 	// Check error report
 	for _, currCase := range []struct {
@@ -101,18 +101,18 @@ func TestIsDecreasing(t *testing.T) {
 		{collection: []float64{1.23, 2.34}, msg: `"1.23" is not greater than "2.34"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
-		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
-		New(t).NotNil(outAssertion.IsDecreasing(currCase.collection))
+		outAssertion := New(out)
+		New(t).False(outAssertion.IsDecreasing(currCase.collection))
 		New(t).Contains(out.buf.String(), currCase.msg)
 	}
 }
 
 func TestIsNonDecreasing(t *testing.T) {
-	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
-	New(t).Nil(mockAssertion.IsNonDecreasing([]int{1, 2}))
-	New(t).Nil(mockAssertion.IsNonDecreasing([]int{1, 1, 2, 3, 4, 5}))
-	New(t).Nil(mockAssertion.IsNonDecreasing([]int{1, 1}))
-	New(t).NotNil(mockAssertion.IsNonDecreasing([]int{2, 1}))
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
+	New(t).True(mockAssertion.IsNonDecreasing([]int{1, 2}))
+	New(t).True(mockAssertion.IsNonDecreasing([]int{1, 1, 2, 3, 4, 5}))
+	New(t).True(mockAssertion.IsNonDecreasing([]int{1, 1}))
+	New(t).False(mockAssertion.IsNonDecreasing([]int{2, 1}))
 
 	// Check error report
 	for _, currCase := range []struct {
@@ -135,8 +135,8 @@ func TestIsNonDecreasing(t *testing.T) {
 		{collection: []float64{2.34, 1.23}, msg: `"2.34" is not less than or equal to "1.23"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
-		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
-		New(t).NotNil(outAssertion.IsNonDecreasing(currCase.collection))
+		outAssertion := New(out)
+		New(t).False(outAssertion.IsNonDecreasing(currCase.collection))
 		New(t).Contains(out.buf.String(), currCase.msg)
 	}
 }
@@ -145,16 +145,16 @@ func TestOrderingMsgAndArgsForwarding(t *testing.T) {
 	msgAndArgs := []any{"format %s %x", "this", 0xc001}
 	expectedOutput := "format this c001\n"
 	collection := []int{1, 2, 1}
-	funcs := []func(*Assertions) any{
-		func(a *Assertions) any { return a.IsIncreasing(collection, msgAndArgs...) },
-		func(a *Assertions) any { return a.IsNonIncreasing(collection, msgAndArgs...) },
-		func(a *Assertions) any { return a.IsDecreasing(collection, msgAndArgs...) },
-		func(a *Assertions) any { return a.IsNonDecreasing(collection, msgAndArgs...) },
+	funcs := []func(*Assertions) bool{
+		func(a *Assertions) bool { return a.IsIncreasing(collection, msgAndArgs...) },
+		func(a *Assertions) bool { return a.IsNonIncreasing(collection, msgAndArgs...) },
+		func(a *Assertions) bool { return a.IsDecreasing(collection, msgAndArgs...) },
+		func(a *Assertions) bool { return a.IsNonDecreasing(collection, msgAndArgs...) },
 	}
 	for _, f := range funcs {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
-		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
-		New(t).NotNil(f(outAssertion))
+		outAssertion := New(out)
+		New(t).False(f(outAssertion))
 		New(t).Contains(out.buf.String(), expectedOutput)
 	}
 }
