@@ -269,7 +269,7 @@ func Test_samePointers(t *testing.T) {
 	tests := []struct {
 		name      string
 		args      args
-		assertion func(*Assertions, bool, ...any)
+		assertion func(*Assertions, bool, ...any) any
 	}{
 		{
 			name:      "1 != 2",
@@ -1411,7 +1411,7 @@ func TestInDeltaMapValues(t *testing.T) {
 		title  string
 		expect any
 		actual any
-		f      func(bool, ...any)
+		f      func(bool, ...any) any
 		delta  float64
 	}{
 		{

@@ -25,21 +25,26 @@ import (
 // Assertions provides assertion methods around the TestingT interface.
 type Assertions struct {
 	t         TestingT
-	onFailure func(TestingT)
+	onFailure func(TestingT) any
 }
 
 // New makes a new Assertions object for the specified TestingT.
 func New(t TestingT) *Assertions {
 	return &Assertions{
-		t:         t,
-		onFailure: func(t TestingT) { t.FailNow() },
+		t: t,
+		onFailure: func(t TestingT) any {
+			t.FailNow()
+			return errors.New("(*Assertions).FailNow")
+		},
 	}
 }
 
-// WithOnFailure changes behaviours on failure of Assertions.
-func (a *Assertions) WithOnFailure(f func(TestingT)) *Assertions {
-	a.onFailure = f
-	return a
+// WithOnFailure returns a new Assertions with customized behaviour on failure.
+func (a *Assertions) WithOnFailure(f func(TestingT) any) *Assertions {
+	return &Assertions{
+		t:         a.t,
+		onFailure: f,
+	}
 }
 
 // TestingT is an interface wrapper around *testing.T
@@ -238,9 +243,7 @@ func FailNow(t TestingT, failureMessage string, msgAndArgs ...any) bool {
 	return false
 }
 
-func (a *Assertions) Fail(failureMessage string, msgAndArgs ...any) {
-	defer a.onFailure(a.t)
-
+func (a *Assertions) Fail(failureMessage string, msgAndArgs ...any) any {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
@@ -263,6 +266,7 @@ func (a *Assertions) Fail(failureMessage string, msgAndArgs ...any) {
 	}
 
 	a.t.Errorf("\n%s", ""+labeledOutput(content...))
+	return a.onFailure(a.t)
 }
 
 // Fail reports a failure through
@@ -675,23 +679,25 @@ func Len(t TestingT, object any, length int, msgAndArgs ...any) bool {
 }
 
 // True asserts that the specified value is true.
-func (a *Assertions) True(value bool, msgAndArgs ...any) {
+func (a *Assertions) True(value bool, msgAndArgs ...any) any {
 	if !value {
 		if h, ok := a.t.(tHelper); ok {
 			h.Helper()
 		}
-		a.Fail("Should be true", msgAndArgs...)
+		return a.Fail("Should be true", msgAndArgs...)
 	}
+	return nil
 }
 
 // False asserts that the specified value is false.
-func (a *Assertions) False(value bool, msgAndArgs ...any) {
+func (a *Assertions) False(value bool, msgAndArgs ...any) any {
 	if value {
 		if h, ok := a.t.(tHelper); ok {
 			h.Helper()
 		}
-		a.Fail("Should be false", msgAndArgs...)
+		return a.Fail("Should be false", msgAndArgs...)
 	}
+	return nil
 }
 
 // NotEqual asserts that the specified values are NOT equal.

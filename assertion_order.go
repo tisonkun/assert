@@ -6,18 +6,17 @@ import (
 )
 
 // isOrdered checks that collection contains elements in order.
-func (a *Assertions) isOrdered(object any, allowedComparesResults []CompareType, failMessage string, msgAndArgs ...any) {
+func (a *Assertions) isOrdered(object any, allowedComparesResults []CompareType, failMessage string, msgAndArgs ...any) any {
 	objKind := reflect.TypeOf(object).Kind()
 	if objKind != reflect.Slice && objKind != reflect.Array {
-		a.Fail(fmt.Sprintf("Can not test elements in order for type \"%s\"", objKind), msgAndArgs...)
-		return
+		return a.Fail(fmt.Sprintf("Can not test elements in order for type \"%s\"", objKind), msgAndArgs...)
 	}
 
 	objValue := reflect.ValueOf(object)
 	objLen := objValue.Len()
 
 	if objLen <= 1 {
-		return
+		return nil
 	}
 
 	value := objValue.Index(0)
@@ -34,15 +33,15 @@ func (a *Assertions) isOrdered(object any, allowedComparesResults []CompareType,
 		compareResult, isComparable := compare(prevValueInterface, valueInterface, firstValueKind)
 
 		if !isComparable {
-			a.Fail(fmt.Sprintf("Can not compare type \"%s\" and \"%s\"", reflect.TypeOf(value), reflect.TypeOf(prevValue)), msgAndArgs...)
-			return
+			return a.Fail(fmt.Sprintf("Can not compare type \"%s\" and \"%s\"", reflect.TypeOf(value), reflect.TypeOf(prevValue)), msgAndArgs...)
 		}
 
 		if !containsValue(allowedComparesResults, compareResult) {
-			a.Fail(fmt.Sprintf(failMessage, prevValue, value), msgAndArgs...)
-			return
+			return a.Fail(fmt.Sprintf(failMessage, prevValue, value), msgAndArgs...)
 		}
 	}
+
+	return nil
 }
 
 // IsIncreasing asserts that the collection is increasing

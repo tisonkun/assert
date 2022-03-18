@@ -378,7 +378,7 @@ func (a *Assertions) Negative(e any, msgAndArgs ...any) {
 	a.compareTwoValues(e, zero.Interface(), []CompareType{compareLess}, "\"%v\" is not negative", msgAndArgs...)
 }
 
-func (a *Assertions) compareTwoValues(e1 any, e2 any, allowedComparesResults []CompareType, failMessage string, msgAndArgs ...any) {
+func (a *Assertions) compareTwoValues(e1 any, e2 any, allowedComparesResults []CompareType, failMessage string, msgAndArgs ...any) any {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
@@ -386,20 +386,19 @@ func (a *Assertions) compareTwoValues(e1 any, e2 any, allowedComparesResults []C
 	e1Kind := reflect.ValueOf(e1).Kind()
 	e2Kind := reflect.ValueOf(e2).Kind()
 	if e1Kind != e2Kind {
-		a.Fail("Elements should be the same type", msgAndArgs...)
-		return
+		return a.Fail("Elements should be the same type", msgAndArgs...)
 	}
 
 	compareResult, isComparable := compare(e1, e2, e1Kind)
 	if !isComparable {
-		a.Fail(fmt.Sprintf("Can not compare type \"%s\"", reflect.TypeOf(e1)), msgAndArgs...)
-		return
+		return a.Fail(fmt.Sprintf("Can not compare type \"%s\"", reflect.TypeOf(e1)), msgAndArgs...)
 	}
 
 	if !containsValue(allowedComparesResults, compareResult) {
-		a.Fail(fmt.Sprintf(failMessage, e1, e2), msgAndArgs...)
-		return
+		return a.Fail(fmt.Sprintf(failMessage, e1, e2), msgAndArgs...)
 	}
+
+	return nil
 }
 
 func containsValue(values []CompareType, value CompareType) bool {
