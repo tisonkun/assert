@@ -299,7 +299,7 @@ func Test_samePointers(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assertion := New(t, FailNowOnFailure)
+			assertion := New(t)
 			tt.assertion(assertion, samePointers(tt.args.first, tt.args.second))
 		})
 	}
@@ -442,7 +442,7 @@ func TestNil(t *testing.T) {
 
 func TestTrue(t *testing.T) {
 	mockT := new(mockTestingT)
-	mockAssertion := New(mockT, FailNowOnFailure)
+	mockAssertion := New(mockT)
 
 	mockT.reset()
 	mockAssertion.True(true)
@@ -459,7 +459,7 @@ func TestTrue(t *testing.T) {
 
 func TestFalse(t *testing.T) {
 	mockT := new(mockTestingT)
-	mockAssertion := New(mockT, FailNowOnFailure)
+	mockAssertion := New(mockT)
 
 	mockT.reset()
 	mockAssertion.False(false)
@@ -741,7 +741,7 @@ func TestNotSubsetNil(t *testing.T) {
 }
 
 func Test_containsElement(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	list1 := []string{"Foo", "Bar"}
 	list2 := []int{1, 2}
 	simpleMap := map[any]any{"Foo": "Bar"}
@@ -1030,7 +1030,7 @@ func TestNotPanics(t *testing.T) {
 
 func TestNoError(t *testing.T) {
 	mockT := new(testing.T)
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 
 	// start with a nil error
 	var err error
@@ -1061,7 +1061,7 @@ func (*customError) Error() string { return "fail" }
 
 func TestError(t *testing.T) {
 	mockT := new(testing.T)
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 
 	// start with a nil error
 	var err error
@@ -1088,7 +1088,7 @@ func TestError(t *testing.T) {
 
 func TestEqualError(t *testing.T) {
 	mockT := new(testing.T)
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 
 	// start with a nil error
 	var err error
@@ -1105,7 +1105,7 @@ func TestEqualError(t *testing.T) {
 
 func TestErrorContains(t *testing.T) {
 	mockT := new(testing.T)
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 
 	// start with a nil error
 	var err error
@@ -1123,7 +1123,7 @@ func TestErrorContains(t *testing.T) {
 }
 
 func Test_isEmpty(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	chWithValue := make(chan struct{}, 1)
 	chWithValue <- struct{}{}
 
@@ -1150,7 +1150,7 @@ func Test_isEmpty(t *testing.T) {
 
 func TestEmpty(t *testing.T) {
 	mockT := new(testing.T)
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 
 	chWithValue := make(chan struct{}, 1)
 	chWithValue <- struct{}{}
@@ -1194,7 +1194,7 @@ func TestEmpty(t *testing.T) {
 
 func TestNotEmpty(t *testing.T) {
 	mockT := new(testing.T)
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 
 	chWithValue := make(chan struct{}, 1)
 	chWithValue <- struct{}{}
@@ -1215,7 +1215,7 @@ func TestNotEmpty(t *testing.T) {
 }
 
 func Test_getLen(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	falseCases := []any{
 		nil,
 		0,
@@ -1262,7 +1262,7 @@ func Test_getLen(t *testing.T) {
 
 func TestLen(t *testing.T) {
 	mockT := new(testing.T)
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 
 	assertion.False(Len(mockT, nil, 0), "nil does not have length")
 	assertion.False(Len(mockT, 0, 0), "int does not have length")
@@ -1325,7 +1325,7 @@ func TestLen(t *testing.T) {
 
 func TestWithinDuration(t *testing.T) {
 	mockT := new(testing.T)
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	a := time.Now()
 	b := a.Add(10 * time.Second)
 
@@ -1344,7 +1344,7 @@ func TestWithinDuration(t *testing.T) {
 
 func TestInDelta(t *testing.T) {
 	mockT := new(testing.T)
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 
 	assertion.True(InDelta(mockT, 1.001, 1, 0.01), "|1.001 - 1| <= 0.01")
 	assertion.True(InDelta(mockT, 1, 1.001, 0.01), "|1 - 1.001| <= 0.01")
@@ -1383,7 +1383,7 @@ func TestInDelta(t *testing.T) {
 
 func TestInDeltaSlice(t *testing.T) {
 	mockT := new(testing.T)
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 
 	assertion.True(InDeltaSlice(mockT,
 		[]float64{1.001, math.NaN(), 0.999},
@@ -1405,7 +1405,7 @@ func TestInDeltaSlice(t *testing.T) {
 
 func TestInDeltaMapValues(t *testing.T) {
 	mockT := new(testing.T)
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 
 	for _, tc := range []struct {
 		title  string
@@ -1484,7 +1484,7 @@ func TestInDeltaMapValues(t *testing.T) {
 
 func TestInEpsilon(t *testing.T) {
 	mockT := new(testing.T)
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 
 	cases := []struct {
 		a, b    any
@@ -1532,7 +1532,7 @@ func TestInEpsilon(t *testing.T) {
 
 func TestInEpsilonSlice(t *testing.T) {
 	mockT := new(testing.T)
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 
 	assertion.True(InEpsilonSlice(mockT,
 		[]float64{2.2, math.NaN(), 2.0},
@@ -1549,7 +1549,7 @@ func TestInEpsilonSlice(t *testing.T) {
 
 func TestRegexp(t *testing.T) {
 	mockT := new(testing.T)
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 
 	cases := []struct {
 		rx, str string
@@ -1604,7 +1604,7 @@ func TestCallerInfoWithAutogeneratedFunctions(t *testing.T) {
 
 func TestZero(t *testing.T) {
 	mockT := new(testing.T)
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 
 	for _, test := range zeros {
 		assertion.True(Zero(mockT, test, "%#v is not the %v zero value", test, reflect.TypeOf(test)))
@@ -1617,7 +1617,7 @@ func TestZero(t *testing.T) {
 
 func TestNotZero(t *testing.T) {
 	mockT := new(testing.T)
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 
 	for _, test := range zeros {
 		assertion.False(NotZero(mockT, test, "%#v is not the %v zero value", test, reflect.TypeOf(test)))
@@ -1629,7 +1629,7 @@ func TestNotZero(t *testing.T) {
 }
 
 func TestFileExists(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 
 	mockT := new(testing.T)
 	assertion.True(FileExists(mockT, "assertions.go"))
@@ -1665,7 +1665,7 @@ func TestFileExists(t *testing.T) {
 }
 
 func TestNoFileExists(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 
 	mockT := new(testing.T)
 	assertion.False(NoFileExists(mockT, "assertions.go"))
@@ -1718,7 +1718,7 @@ func cleanUpTempFiles(paths []string) []error {
 }
 
 func TestDirExists(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 
 	mockT := new(testing.T)
 	assertion.False(DirExists(mockT, "assertions.go"))
@@ -1754,7 +1754,7 @@ func TestDirExists(t *testing.T) {
 }
 
 func TestNoDirExists(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 
 	mockT := new(testing.T)
 	assertion.True(NoDirExists(mockT, "assertions.go"))
@@ -1790,80 +1790,80 @@ func TestNoDirExists(t *testing.T) {
 }
 
 func TestJSONEq_EqualSONString(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	mockT := new(testing.T)
 	assertion.True(JSONEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`))
 }
 
 func TestJSONEq_EquivalentButNotEqual(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	mockT := new(testing.T)
 	assertion.True(JSONEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`))
 }
 
 func TestJSONEq_HashOfArraysAndHashes(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	mockT := new(testing.T)
 	assertion.True(JSONEq(mockT, "{\r\n\t\"numeric\": 1.5,\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]],\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\"\r\n}",
 		"{\r\n\t\"numeric\": 1.5,\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\",\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]]\r\n}"))
 }
 
 func TestJSONEq_Array(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	mockT := new(testing.T)
 	assertion.True(JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`))
 }
 
 func TestJSONEq_HashAndArrayNotEquivalent(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	mockT := new(testing.T)
 	assertion.False(JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`))
 }
 
 func TestJSONEq_HashesNotEquivalent(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	mockT := new(testing.T)
 	assertion.False(JSONEq(mockT, `{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`))
 }
 
 func TestJSONEq_ActualIsNotJSON(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	mockT := new(testing.T)
 	assertion.False(JSONEq(mockT, `{"foo": "bar"}`, "Not JSON"))
 }
 
 func TestJSONEq_ExpectedIsNotJSON(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	mockT := new(testing.T)
 	assertion.False(JSONEq(mockT, "Not JSON", `{"foo": "bar", "hello": "world"}`))
 }
 
 func TestJSONEq_ExpectedAndActualNotJSON(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	mockT := new(testing.T)
 	assertion.False(JSONEq(mockT, "Not JSON", "Not JSON"))
 }
 
 func TestJSONEq_ArraysOfDifferentOrder(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	mockT := new(testing.T)
 	assertion.False(JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`))
 }
 
 func TestYAMLEq_EqualYAMLString(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	mockT := new(testing.T)
 	assertion.True(YAMLEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`))
 }
 
 func TestYAMLEq_EquivalentButNotEqual(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	mockT := new(testing.T)
 	assertion.True(YAMLEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`))
 }
 
 func TestYAMLEq_HashOfArraysAndHashes(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	mockT := new(testing.T)
 	expected := `
 numeric: 1.5
@@ -1894,43 +1894,43 @@ array:
 }
 
 func TestYAMLEq_Array(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	mockT := new(testing.T)
 	assertion.True(YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`))
 }
 
 func TestYAMLEq_HashAndArrayNotEquivalent(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	mockT := new(testing.T)
 	assertion.False(YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`))
 }
 
 func TestYAMLEq_HashesNotEquivalent(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	mockT := new(testing.T)
 	assertion.False(YAMLEq(mockT, `{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`))
 }
 
 func TestYAMLEq_ActualIsSimpleString(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	mockT := new(testing.T)
 	assertion.False(YAMLEq(mockT, `{"foo": "bar"}`, "Simple String"))
 }
 
 func TestYAMLEq_ExpectedIsSimpleString(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	mockT := new(testing.T)
 	assertion.False(YAMLEq(mockT, "Simple String", `{"foo": "bar", "hello": "world"}`))
 }
 
 func TestYAMLEq_ExpectedAndActualSimpleString(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	mockT := new(testing.T)
 	assertion.True(YAMLEq(mockT, "Simple String", "Simple String"))
 }
 
 func TestYAMLEq_ArraysOfDifferentOrder(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	mockT := new(testing.T)
 	assertion.False(YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`))
 }
@@ -2157,7 +2157,7 @@ func (m *mockTestingT) FailNow() {
 }
 
 func TestFailNow(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	mockT := &mockTestingT{}
 	FailNow(mockT, "failed")
 	assertion.True(mockT.failed)
@@ -2354,7 +2354,7 @@ func TestErrorAssertionFunc(t *testing.T) {
 }
 
 func TestEventuallyFalse(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	mockT := new(testing.T)
 
 	condition := func() bool {
@@ -2365,7 +2365,7 @@ func TestEventuallyFalse(t *testing.T) {
 }
 
 func TestEventuallyTrue(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	state := 0
 	condition := func() bool {
 		defer func() {
@@ -2378,7 +2378,7 @@ func TestEventuallyTrue(t *testing.T) {
 }
 
 func TestNeverFalse(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	condition := func() bool {
 		return false
 	}
@@ -2387,7 +2387,7 @@ func TestNeverFalse(t *testing.T) {
 }
 
 func TestNeverTrue(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	mockT := new(testing.T)
 	state := 0
 	condition := func() bool {
@@ -2401,7 +2401,7 @@ func TestNeverTrue(t *testing.T) {
 }
 
 func TestEventuallyIssue805(t *testing.T) {
-	assertion := New(t, FailNowOnFailure)
+	assertion := New(t)
 	mockT := new(testing.T)
 
 	NotPanics(t, func() {

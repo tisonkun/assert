@@ -28,17 +28,18 @@ type Assertions struct {
 	onFailure func(TestingT)
 }
 
-// FailNowOnFailure calls TestingT.FailNow on assertion failure.
-var FailNowOnFailure = func(t TestingT) {
-	t.FailNow()
-}
-
 // New makes a new Assertions object for the specified TestingT.
-func New(t TestingT, onFailure func(TestingT)) *Assertions {
+func New(t TestingT) *Assertions {
 	return &Assertions{
 		t:         t,
-		onFailure: onFailure,
+		onFailure: func(t TestingT) { t.FailNow() },
 	}
+}
+
+// WithOnFailure changes behaviours on failure of Assertions.
+func (a *Assertions) WithOnFailure(f func(TestingT)) *Assertions {
+	a.onFailure = f
+	return a
 }
 
 // TestingT is an interface wrapper around *testing.T
