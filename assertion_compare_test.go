@@ -372,7 +372,7 @@ func Test_containsValue(t *testing.T) {
 		{values: []CompareType{compareGreater, compareLess}, value: compareEqual, result: false},
 	} {
 		compareResult := containsValue(currCase.values, currCase.value)
-		Equal(t, currCase.result, compareResult)
+		New(t).Equal(currCase.result, compareResult)
 	}
 }
 

@@ -183,7 +183,7 @@ func TestIsType(t *testing.T) {
 func TestEqual(t *testing.T) {
 	type myType string
 
-	mockT := new(testing.T)
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
 	var m map[string]any
 
 	cases := []struct {
@@ -212,7 +212,7 @@ func TestEqual(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(fmt.Sprintf("Equal(%#v, %#v)", c.expected, c.actual), func(t *testing.T) {
-			res := Equal(mockT, c.expected, c.actual)
+			res := mockAssertion.Equal(c.expected, c.actual)
 
 			if res != c.result {
 				t.Errorf("Equal(%#v, %#v) should return %#v: %s", c.expected, c.actual, c.result, c.remark)
@@ -362,7 +362,7 @@ func TestStringEqual(t *testing.T) {
 		{equalWant: "hi, \nmy name is", equalGot: "what,\nmy name is", want: "\tassertions.go:\\d+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"hi, \\\\nmy name is\"\n\\s+actual\\s+: \"what,\\\\nmy name is\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+@@ -1,2 \\+1,2 @@\n\\s+-hi, \n\\s+\\+what,\n\\s+my name is"},
 	} {
 		mockT := &bufferT{}
-		Equal(mockT, currCase.equalWant, currCase.equalGot, currCase.msgAndArgs...)
+		New(mockT).Equal(currCase.equalWant, currCase.equalGot, currCase.msgAndArgs...)
 		Regexp(t, regexp.MustCompile(currCase.want), mockT.buf.String(), "Case %d", i)
 	}
 }
@@ -380,35 +380,35 @@ func TestEqualFormatting(t *testing.T) {
 		{equalWant: "want", equalGot: "got", msgAndArgs: []any{struct{ a string }{"hello"}}, want: "\tassertions.go:[0-9]+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"want\"\n\\s+actual\\s+: \"got\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+@@ -1 \\+1 @@\n\\s+-want\n\\s+\\+got\n\\s+Messages:\\s+{a:hello}\n"},
 	} {
 		mockT := &bufferT{}
-		Equal(mockT, currCase.equalWant, currCase.equalGot, currCase.msgAndArgs...)
+		New(mockT).Equal(currCase.equalWant, currCase.equalGot, currCase.msgAndArgs...)
 		Regexp(t, regexp.MustCompile(currCase.want), mockT.buf.String(), "Case %d", i)
 	}
 }
 
 func TestFormatUnequalValues(t *testing.T) {
 	expected, actual := formatUnequalValues("foo", "bar")
-	Equal(t, `"foo"`, expected, "value should not include type")
-	Equal(t, `"bar"`, actual, "value should not include type")
+	New(t).Equal(`"foo"`, expected, "value should not include type")
+	New(t).Equal(`"bar"`, actual, "value should not include type")
 
 	expected, actual = formatUnequalValues(123, 123)
-	Equal(t, `123`, expected, "value should not include type")
-	Equal(t, `123`, actual, "value should not include type")
+	New(t).Equal(`123`, expected, "value should not include type")
+	New(t).Equal(`123`, actual, "value should not include type")
 
 	expected, actual = formatUnequalValues(int64(123), int32(123))
-	Equal(t, `int64(123)`, expected, "value should include type")
-	Equal(t, `int32(123)`, actual, "value should include type")
+	New(t).Equal(`int64(123)`, expected, "value should include type")
+	New(t).Equal(`int32(123)`, actual, "value should include type")
 
 	expected, actual = formatUnequalValues(int64(123), nil)
-	Equal(t, `int64(123)`, expected, "value should include type")
-	Equal(t, `<nil>(<nil>)`, actual, "value should include type")
+	New(t).Equal(`int64(123)`, expected, "value should include type")
+	New(t).Equal(`<nil>(<nil>)`, actual, "value should include type")
 
 	type testStructType struct {
 		Val string
 	}
 
 	expected, actual = formatUnequalValues(&testStructType{Val: "test"}, &testStructType{Val: "test"})
-	Equal(t, `&assert.testStructType{Val:"test"}`, expected, "value should not include type annotation")
-	Equal(t, `&assert.testStructType{Val:"test"}`, actual, "value should not include type annotation")
+	New(t).Equal(`&assert.testStructType{Val:"test"}`, expected, "value should not include type annotation")
+	New(t).Equal(`&assert.testStructType{Val:"test"}`, actual, "value should not include type annotation")
 }
 
 func TestNotNil(t *testing.T) {
@@ -458,8 +458,7 @@ func TestFalse(t *testing.T) {
 }
 
 func TestExactly(t *testing.T) {
-
-	mockT := new(testing.T)
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
 
 	a := float32(1)
 	b := float64(1)
@@ -479,7 +478,7 @@ func TestExactly(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(fmt.Sprintf("Exactly(%#v, %#v)", c.expected, c.actual), func(t *testing.T) {
-			res := Exactly(mockT, c.expected, c.actual)
+			res := mockAssertion.Exactly(c.expected, c.actual)
 
 			if res != c.result {
 				t.Errorf("Exactly(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
@@ -489,8 +488,7 @@ func TestExactly(t *testing.T) {
 }
 
 func TestNotEqual(t *testing.T) {
-
-	mockT := new(testing.T)
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
 
 	cases := []struct {
 		expected any
@@ -519,7 +517,7 @@ func TestNotEqual(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(fmt.Sprintf("NotEqual(%#v, %#v)", c.expected, c.actual), func(t *testing.T) {
-			res := NotEqual(mockT, c.expected, c.actual)
+			res := mockAssertion.NotEqual(c.expected, c.actual)
 
 			if res != c.result {
 				t.Errorf("NotEqual(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
@@ -896,9 +894,9 @@ func TestDiffLists(t *testing.T) {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			actualExtraA, actualExtraB := diffLists(test.listA, test.listB)
-			Equal(t, test.extraA, actualExtraA, "extra A does not match for listA=%v listB=%v",
+			New(t).Equal(test.extraA, actualExtraA, "extra A does not match for listA=%v listB=%v",
 				test.listA, test.listB)
-			Equal(t, test.extraB, actualExtraB, "extra B does not match for listA=%v listB=%v",
+			New(t).Equal(test.extraB, actualExtraB, "extra B does not match for listA=%v listB=%v",
 				test.listA, test.listB)
 		})
 	}
@@ -1099,6 +1097,20 @@ func TestErrorContains(t *testing.T) {
 	New(t).True(mockAssertion.ErrorContains(err, "another error"), "ErrorContains should return true")
 }
 
+func TestErrorRegexp(t *testing.T) {
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
+
+	// start with a nil error
+	var err error
+	New(t).False(mockAssertion.ErrorRegexp(err, ""), "ErrorContains should return false for nil arg")
+
+	// now set an error
+	err = errors.New("some error: another error")
+	New(t).False(mockAssertion.ErrorRegexp(err, "bad error"), "ErrorContains should return false for different error string")
+	New(t).True(mockAssertion.ErrorRegexp(err, "some error"), "ErrorContains should return true")
+	New(t).True(mockAssertion.ErrorRegexp(err, "another error"), "ErrorContains should return true")
+}
+
 func TestIsEmpty(t *testing.T) {
 	assertion := New(t)
 	chWithValue := make(chan struct{}, 1)
@@ -1204,7 +1216,7 @@ func Test_getLen(t *testing.T) {
 	for _, v := range falseCases {
 		ok, l := getLen(v)
 		assertion.False(ok, "Expected getLen fail to get length of %#v", v)
-		Equal(t, 0, l, "getLen should return 0 for %#v", v)
+		New(t).Equal(0, l, "getLen should return 0 for %#v", v)
 	}
 
 	ch := make(chan int, 5)
@@ -1233,7 +1245,7 @@ func Test_getLen(t *testing.T) {
 	for _, c := range trueCases {
 		ok, l := getLen(c.v)
 		assertion.True(ok, "Expected getLen success to get length of %#v", c.v)
-		Equal(t, c.l, l)
+		New(t).Equal(c.l, l)
 	}
 }
 
@@ -1766,150 +1778,82 @@ func TestNoDirExists(t *testing.T) {
 	}
 }
 
-func TestJSONEq_EqualSONString(t *testing.T) {
-	assertion := New(t)
-	mockT := new(testing.T)
-	assertion.True(JSONEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`))
+func TestJSONEq(t *testing.T) {
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
+	for _, test := range []struct {
+		name     string
+		expected string
+		actual   string
+		result   bool
+	}{
+		{"EqualSONString", `{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`, true},
+		{"EquivalentButNotEqual", `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`, true},
+		{"HashOfArraysAndHashes", "{\r\n\t\"numeric\": 1.5,\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]],\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\"\r\n}", "{\r\n\t\"numeric\": 1.5,\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\",\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]]\r\n}", true},
+		{"Array", `["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`, true},
+		{"HashAndArrayNotEquivalent", `["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`, false},
+		{"HashesNotEquivalent", `{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`, false},
+		{"ActualIsNotJSON", `{"foo": "bar"}`, "Not JSON", false},
+		{"ExpectedIsNotJSON", "Not JSON", `{"foo": "bar", "hello": "world"}`, false},
+		{"ExpectedAndActualNotJSON", "Not JSON", "Not JSON", false},
+		{"ArraysOfDifferentOrder", `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`, false},
+	} {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			New(t).Equal(test.result, mockAssertion.JSONEq(test.expected, test.actual))
+		})
+	}
 }
 
-func TestJSONEq_EquivalentButNotEqual(t *testing.T) {
-	assertion := New(t)
-	mockT := new(testing.T)
-	assertion.True(JSONEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`))
-}
+func TestYAMLEq(t *testing.T) {
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
 
-func TestJSONEq_HashOfArraysAndHashes(t *testing.T) {
-	assertion := New(t)
-	mockT := new(testing.T)
-	assertion.True(JSONEq(mockT, "{\r\n\t\"numeric\": 1.5,\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]],\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\"\r\n}",
-		"{\r\n\t\"numeric\": 1.5,\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\",\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]]\r\n}"))
-}
-
-func TestJSONEq_Array(t *testing.T) {
-	assertion := New(t)
-	mockT := new(testing.T)
-	assertion.True(JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`))
-}
-
-func TestJSONEq_HashAndArrayNotEquivalent(t *testing.T) {
-	assertion := New(t)
-	mockT := new(testing.T)
-	assertion.False(JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`))
-}
-
-func TestJSONEq_HashesNotEquivalent(t *testing.T) {
-	assertion := New(t)
-	mockT := new(testing.T)
-	assertion.False(JSONEq(mockT, `{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`))
-}
-
-func TestJSONEq_ActualIsNotJSON(t *testing.T) {
-	assertion := New(t)
-	mockT := new(testing.T)
-	assertion.False(JSONEq(mockT, `{"foo": "bar"}`, "Not JSON"))
-}
-
-func TestJSONEq_ExpectedIsNotJSON(t *testing.T) {
-	assertion := New(t)
-	mockT := new(testing.T)
-	assertion.False(JSONEq(mockT, "Not JSON", `{"foo": "bar", "hello": "world"}`))
-}
-
-func TestJSONEq_ExpectedAndActualNotJSON(t *testing.T) {
-	assertion := New(t)
-	mockT := new(testing.T)
-	assertion.False(JSONEq(mockT, "Not JSON", "Not JSON"))
-}
-
-func TestJSONEq_ArraysOfDifferentOrder(t *testing.T) {
-	assertion := New(t)
-	mockT := new(testing.T)
-	assertion.False(JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`))
-}
-
-func TestYAMLEq_EqualYAMLString(t *testing.T) {
-	assertion := New(t)
-	mockT := new(testing.T)
-	assertion.True(YAMLEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`))
-}
-
-func TestYAMLEq_EquivalentButNotEqual(t *testing.T) {
-	assertion := New(t)
-	mockT := new(testing.T)
-	assertion.True(YAMLEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`))
-}
-
-func TestYAMLEq_HashOfArraysAndHashes(t *testing.T) {
-	assertion := New(t)
-	mockT := new(testing.T)
-	expected := `
+	hashOfArraysAndHashesExpected := `
 numeric: 1.5
 array:
-  - foo: bar
-  - 1
-  - "string"
-  - ["nested", "array", 5.5]
+- foo: bar
+- 1
+- "string"
+- ["nested", "array", 5.5]
 hash:
-  nested: hash
-  nested_slice: [this, is, nested]
+nested: hash
+nested_slice: [this, is, nested]
 string: "foo"
 `
-
-	actual := `
+	hashOfArraysAndHashesActual := `
 numeric: 1.5
 hash:
-  nested: hash
-  nested_slice: [this, is, nested]
+nested: hash
+nested_slice: [this, is, nested]
 string: "foo"
 array:
-  - foo: bar
-  - 1
-  - "string"
-  - ["nested", "array", 5.5]
+- foo: bar
+- 1
+- "string"
+- ["nested", "array", 5.5]
 `
-	assertion.True(YAMLEq(mockT, expected, actual))
-}
 
-func TestYAMLEq_Array(t *testing.T) {
-	assertion := New(t)
-	mockT := new(testing.T)
-	assertion.True(YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`))
-}
-
-func TestYAMLEq_HashAndArrayNotEquivalent(t *testing.T) {
-	assertion := New(t)
-	mockT := new(testing.T)
-	assertion.False(YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`))
-}
-
-func TestYAMLEq_HashesNotEquivalent(t *testing.T) {
-	assertion := New(t)
-	mockT := new(testing.T)
-	assertion.False(YAMLEq(mockT, `{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`))
-}
-
-func TestYAMLEq_ActualIsSimpleString(t *testing.T) {
-	assertion := New(t)
-	mockT := new(testing.T)
-	assertion.False(YAMLEq(mockT, `{"foo": "bar"}`, "Simple String"))
-}
-
-func TestYAMLEq_ExpectedIsSimpleString(t *testing.T) {
-	assertion := New(t)
-	mockT := new(testing.T)
-	assertion.False(YAMLEq(mockT, "Simple String", `{"foo": "bar", "hello": "world"}`))
-}
-
-func TestYAMLEq_ExpectedAndActualSimpleString(t *testing.T) {
-	assertion := New(t)
-	mockT := new(testing.T)
-	assertion.True(YAMLEq(mockT, "Simple String", "Simple String"))
-}
-
-func TestYAMLEq_ArraysOfDifferentOrder(t *testing.T) {
-	assertion := New(t)
-	mockT := new(testing.T)
-	assertion.False(YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`))
+	for _, test := range []struct {
+		name     string
+		expected string
+		actual   string
+		result   bool
+	}{
+		{"EqualYAMLString", `{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`, true},
+		{"EquivalentButNotEqual", `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`, true},
+		{"HashOfArraysAndHashes", hashOfArraysAndHashesExpected, hashOfArraysAndHashesActual, true},
+		{"Array", `["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`, true},
+		{"HashAndArrayNotEquivalent", `["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`, false},
+		{"HashesNotEquivalent", `{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`, false},
+		{"ActualIsSimpleString", `{"foo": "bar"}`, "Simple String", false},
+		{"ExpectedIsSimpleString", "Simple String", `{"foo": "bar", "hello": "world"}`, false},
+		{"ExpectedAndActualSimpleString", "Simple String", "Simple String", true},
+		{"ArraysOfDifferentOrder", `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`, false},
+	} {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			New(t).Equal(test.result, mockAssertion.YAMLEq(test.expected, test.actual))
+		})
+	}
 }
 
 type diffTestingStruct struct {
@@ -1937,7 +1881,7 @@ Diff:
 		struct{ foo string }{"hello"},
 		struct{ foo string }{"bar"},
 	)
-	Equal(t, expected, actual)
+	New(t).Equal(expected, actual)
 
 	expected = `
 
@@ -1957,7 +1901,7 @@ Diff:
 		[]int{1, 2, 3, 4},
 		[]int{1, 3, 5, 7},
 	)
-	Equal(t, expected, actual)
+	New(t).Equal(expected, actual)
 
 	expected = `
 
@@ -1976,7 +1920,7 @@ Diff:
 		[]int{1, 2, 3, 4}[0:3],
 		[]int{1, 3, 5, 7}[0:3],
 	)
-	Equal(t, expected, actual)
+	New(t).Equal(expected, actual)
 
 	expected = `
 
@@ -1999,7 +1943,7 @@ Diff:
 		map[string]int{"one": 1, "two": 2, "three": 3, "four": 4},
 		map[string]int{"one": 1, "three": 3, "five": 5, "seven": 7},
 	)
-	Equal(t, expected, actual)
+	New(t).Equal(expected, actual)
 
 	expected = `
 
@@ -2017,7 +1961,7 @@ Diff:
 		errors.New("some expected error"),
 		errors.New("actual error"),
 	)
-	Equal(t, expected, actual)
+	New(t).Equal(expected, actual)
 
 	expected = `
 
@@ -2035,7 +1979,7 @@ Diff:
 		diffTestingStruct{A: "some string", B: 10},
 		diffTestingStruct{A: "some string", B: 15},
 	)
-	Equal(t, expected, actual)
+	New(t).Equal(expected, actual)
 
 	expected = `
 
@@ -2052,23 +1996,23 @@ Diff:
 		time.Date(2020, 9, 24, 0, 0, 0, 0, time.UTC),
 		time.Date(2020, 9, 25, 0, 0, 0, 0, time.UTC),
 	)
-	Equal(t, expected, actual)
+	New(t).Equal(expected, actual)
 }
 
 func TestTimeEqualityErrorFormatting(t *testing.T) {
 	out := &outputT{buf: bytes.NewBuffer(nil)}
-	Equal(out, time.Second*2, time.Millisecond)
+	New(out).Equal(time.Second*2, time.Millisecond)
 	expectedErr := "\\s+Error Trace:\\s+Error:\\s+Not equal:\\s+\n\\s+expected: 2s\n\\s+actual\\s+: 1ms\n"
 	Regexp(t, regexp.MustCompile(expectedErr), out.buf.String())
 }
 
 func TestDiffEmptyCases(t *testing.T) {
-	Equal(t, "", diff(nil, nil))
-	Equal(t, "", diff(struct{ foo string }{}, nil))
-	Equal(t, "", diff(nil, struct{ foo string }{}))
-	Equal(t, "", diff(1, 2))
-	Equal(t, "", diff(1, 2))
-	Equal(t, "", diff([]int{1}, []bool{true}))
+	New(t).Equal("", diff(nil, nil))
+	New(t).Equal("", diff(struct{ foo string }{}, nil))
+	New(t).Equal("", diff(nil, struct{ foo string }{}))
+	New(t).Equal("", diff(1, 2))
+	New(t).Equal("", diff(1, 2))
+	New(t).Equal("", diff([]int{1}, []bool{true}))
 }
 
 // Ensure there are no data races
@@ -2120,7 +2064,7 @@ func TestBytesEqual(t *testing.T) {
 		{nil, make([]byte, 0)},
 	}
 	for i, c := range cases {
-		Equal(t, reflect.DeepEqual(c.a, c.b), ObjectsAreEqual(c.a, c.b), "case %d failed", i+1)
+		New(t).Equal(reflect.DeepEqual(c.a, c.b), ObjectsAreEqual(c.a, c.b), "case %d failed", i+1)
 	}
 }
 
@@ -2136,7 +2080,7 @@ func BenchmarkBytesEqual(b *testing.B) {
 	mockT := new(testing.T)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		Equal(mockT, s, s2)
+		NewWithOnFailureNoop(mockT).Equal(s, s2)
 	}
 }
 
@@ -2217,15 +2161,14 @@ func Test_validateEqualArgs(t *testing.T) {
 	}
 }
 
-func Test_truncatingFormat(t *testing.T) {
-
+func TestTruncatingFormat(t *testing.T) {
 	original := strings.Repeat("a", bufio.MaxScanTokenSize-102)
 	result := truncatingFormat(original)
-	Equal(t, fmt.Sprintf("%#v", original), result, "string should not be truncated")
+	New(t).Equal(fmt.Sprintf("%#v", original), result, "string should not be truncated")
 
 	original = original + "x"
 	result = truncatingFormat(original)
-	NotEqual(t, fmt.Sprintf("%#v", original), result, "string should have been truncated.")
+	New(t).NotEqual(fmt.Sprintf("%#v", original), result, "string should have been truncated.")
 
 	if !strings.HasSuffix(result, "<... truncated>") {
 		t.Error("truncated string should have <... truncated> suffix")

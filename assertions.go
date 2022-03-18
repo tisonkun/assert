@@ -347,31 +347,27 @@ func IsType(t TestingT, expectedType any, object any, msgAndArgs ...any) bool {
 }
 
 // Equal asserts that two objects are equal.
-//
-//    assert.Equal(t, 123, 123)
-//
 // Pointer variable equality is determined based on the equality of the
 // referenced values (as opposed to the memory addresses). Function equality
 // cannot be determined and will always fail.
-func Equal(t TestingT, expected, actual any, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) Equal(expected, actual any, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 	if err := validateEqualArgs(expected, actual); err != nil {
-		return Fail(t, fmt.Sprintf("Invalid operation: %#v == %#v (%s)",
+		return a.Fail(fmt.Sprintf("Invalid operation: %#v == %#v (%s)",
 			expected, actual, err), msgAndArgs...)
 	}
 
 	if !ObjectsAreEqual(expected, actual) {
 		diff := diff(expected, actual)
 		expected, actual = formatUnequalValues(expected, actual)
-		return Fail(t, fmt.Sprintf("Not equal: \n"+
+		return a.Fail(fmt.Sprintf("Not equal: \n"+
 			"expected: %s\n"+
 			"actual  : %s%s", expected, actual, diff), msgAndArgs...)
 	}
 
 	return true
-
 }
 
 // validateEqualArgs checks whether provided arguments can be safely used in the
@@ -494,10 +490,8 @@ func (a *Assertions) EqualValues(expected, actual any, msgAndArgs ...any) bool {
 }
 
 // Exactly asserts that two objects are equal in value and type.
-//
-//    assert.Exactly(t, int32(123), int64(123))
-func Exactly(t TestingT, expected, actual any, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) Exactly(expected, actual any, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 
@@ -505,11 +499,10 @@ func Exactly(t TestingT, expected, actual any, msgAndArgs ...any) bool {
 	bType := reflect.TypeOf(actual)
 
 	if aType != bType {
-		return Fail(t, fmt.Sprintf("Types expected to match exactly\n\t%v != %v", aType, bType), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("Types expected to match exactly\n\t%v != %v", aType, bType), msgAndArgs...)
 	}
 
-	return Equal(t, expected, actual, msgAndArgs...)
-
+	return a.Equal(expected, actual, msgAndArgs...)
 }
 
 // NotNil asserts that the specified object is not nil.
@@ -685,26 +678,22 @@ func (a *Assertions) False(value bool, msgAndArgs ...any) bool {
 }
 
 // NotEqual asserts that the specified values are NOT equal.
-//
-//    assert.NotEqual(t, obj1, obj2)
-//
 // Pointer variable equality is determined based on the equality of the
 // referenced values (as opposed to the memory addresses).
-func NotEqual(t TestingT, expected, actual any, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) NotEqual(expected, actual any, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 	if err := validateEqualArgs(expected, actual); err != nil {
-		return Fail(t, fmt.Sprintf("Invalid operation: %#v != %#v (%s)",
+		return a.Fail(fmt.Sprintf("Invalid operation: %#v != %#v (%s)",
 			expected, actual, err), msgAndArgs...)
 	}
 
 	if ObjectsAreEqual(expected, actual) {
-		return Fail(t, fmt.Sprintf("Should not be: %#v\n", actual), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("Should not be: %#v\n", actual), msgAndArgs...)
 	}
 
 	return true
-
 }
 
 // NotEqualValues asserts that two objects are not equal even when converted to the same type
@@ -1384,6 +1373,25 @@ func (a *Assertions) ErrorContains(theError error, contains string, msgAndArgs .
 	return true
 }
 
+// ErrorRegexp asserts that a function returned an error (i.e. not `nil`)
+// and that the error is matched by a specified regexp.
+func (a *Assertions) ErrorRegexp(theError error, rx any, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+
+	if !a.Error(theError, msgAndArgs...) {
+		return false
+	}
+
+	actual := theError.Error()
+	if !matchRegexp(rx, actual) {
+		return a.Fail(fmt.Sprintf("Error %#v is not matched by %#v", actual, rx), msgAndArgs...)
+	}
+
+	return true
+}
+
 // matchRegexp return true if a specified regexp matches a string.
 func matchRegexp(rx any, str any) bool {
 	var r *regexp.Regexp
@@ -1528,41 +1536,39 @@ func NoDirExists(t TestingT, path string, msgAndArgs ...any) bool {
 }
 
 // JSONEq asserts that two JSON strings are equivalent.
-//
-//  assert.JSONEq(t, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
-func JSONEq(t TestingT, expected string, actual string, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) JSONEq(expected string, actual string, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 	var expectedJSONAsInterface, actualJSONAsInterface any
 
 	if err := json.Unmarshal([]byte(expected), &expectedJSONAsInterface); err != nil {
-		return Fail(t, fmt.Sprintf("Expected value ('%s') is not valid json.\nJSON parsing error: '%s'", expected, err.Error()), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("Expected value ('%s') is not valid json.\nJSON parsing error: '%s'", expected, err.Error()), msgAndArgs...)
 	}
 
 	if err := json.Unmarshal([]byte(actual), &actualJSONAsInterface); err != nil {
-		return Fail(t, fmt.Sprintf("Input ('%s') needs to be valid json.\nJSON parsing error: '%s'", actual, err.Error()), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("Input ('%s') needs to be valid json.\nJSON parsing error: '%s'", actual, err.Error()), msgAndArgs...)
 	}
 
-	return Equal(t, expectedJSONAsInterface, actualJSONAsInterface, msgAndArgs...)
+	return a.Equal(expectedJSONAsInterface, actualJSONAsInterface, msgAndArgs...)
 }
 
 // YAMLEq asserts that two YAML strings are equivalent.
-func YAMLEq(t TestingT, expected string, actual string, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) YAMLEq(expected string, actual string, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 	var expectedYAMLAsInterface, actualYAMLAsInterface any
 
 	if err := yaml.Unmarshal([]byte(expected), &expectedYAMLAsInterface); err != nil {
-		return Fail(t, fmt.Sprintf("Expected value ('%s') is not valid yaml.\nYAML parsing error: '%s'", expected, err.Error()), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("Expected value ('%s') is not valid yaml.\nYAML parsing error: '%s'", expected, err.Error()), msgAndArgs...)
 	}
 
 	if err := yaml.Unmarshal([]byte(actual), &actualYAMLAsInterface); err != nil {
-		return Fail(t, fmt.Sprintf("Input ('%s') needs to be valid yaml.\nYAML error: '%s'", actual, err.Error()), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("Input ('%s') needs to be valid yaml.\nYAML error: '%s'", actual, err.Error()), msgAndArgs...)
 	}
 
-	return Equal(t, expectedYAMLAsInterface, actualYAMLAsInterface, msgAndArgs...)
+	return a.Equal(expectedYAMLAsInterface, actualYAMLAsInterface, msgAndArgs...)
 }
 
 func typeAndKind(v any) (reflect.Type, reflect.Kind) {
