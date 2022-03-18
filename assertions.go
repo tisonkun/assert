@@ -238,8 +238,30 @@ func FailNow(t TestingT, failureMessage string, msgAndArgs ...any) bool {
 }
 
 func (a *Assertions) Fail(failureMessage string, msgAndArgs ...any) {
-	Fail(a.t, failureMessage, msgAndArgs...)
-	a.onFailure(a.t)
+	defer a.onFailure(a.t)
+
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+
+	content := []labeledContent{
+		{"Error Trace", strings.Join(CallerInfo(), "\n\t\t\t")},
+		{"Error", failureMessage},
+	}
+
+	// Add test name if the Go version supports it
+	if n, ok := a.t.(interface {
+		Name() string
+	}); ok {
+		content = append(content, labeledContent{"Test", n.Name()})
+	}
+
+	message := messageFromMsgAndArgs(msgAndArgs...)
+	if len(message) > 0 {
+		content = append(content, labeledContent{"Messages", message})
+	}
+
+	a.t.Errorf("\n%s", ""+labeledOutput(content...))
 }
 
 // Fail reports a failure through
