@@ -1824,26 +1824,26 @@ func TestYAMLEq(t *testing.T) {
 	hashOfArraysAndHashesExpected := `
 numeric: 1.5
 array:
-- foo: bar
-- 1
-- "string"
-- ["nested", "array", 5.5]
+  - foo: bar
+  - 1
+  - "string"
+  - ["nested", "array", 5.5]
 hash:
-nested: hash
-nested_slice: [this, is, nested]
+  nested: hash
+  nested_slice: [this, is, nested]
 string: "foo"
 `
 	hashOfArraysAndHashesActual := `
 numeric: 1.5
 hash:
-nested: hash
-nested_slice: [this, is, nested]
+  nested: hash
+  nested_slice: [this, is, nested]
 string: "foo"
 array:
-- foo: bar
-- 1
-- "string"
-- ["nested", "array", 5.5]
+  - foo: bar
+  - 1
+  - "string"
+  - ["nested", "array", 5.5]
 `
 
 	for _, test := range []struct {
