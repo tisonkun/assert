@@ -594,38 +594,28 @@ func isEmpty(object any) bool {
 
 // Empty asserts that the specified object is empty.  I.e. nil, "", false, 0 or either
 // a slice or a channel with len == 0.
-//
-//  assert.Empty(t, obj)
-func Empty(t TestingT, object any, msgAndArgs ...any) bool {
-	pass := isEmpty(object)
-	if !pass {
-		if h, ok := t.(tHelper); ok {
+func (a *Assertions) Empty(object any, msgAndArgs ...any) bool {
+	if !isEmpty(object) {
+		if h, ok := a.t.(tHelper); ok {
 			h.Helper()
 		}
-		Fail(t, fmt.Sprintf("Should be empty, but was %v", object), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("Should be empty, but was %v", object), msgAndArgs...)
 	}
 
-	return pass
-
+	return true
 }
 
 // NotEmpty asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or either
 // a slice or a channel with len == 0.
-//
-//  if assert.NotEmpty(t, obj) {
-//    assert.Equal(t, "two", obj[1])
-//  }
-func NotEmpty(t TestingT, object any, msgAndArgs ...any) bool {
-	pass := !isEmpty(object)
-	if !pass {
-		if h, ok := t.(tHelper); ok {
+func (a *Assertions) NotEmpty(object any, msgAndArgs ...any) bool {
+	if isEmpty(object) {
+		if h, ok := a.t.(tHelper); ok {
 			h.Helper()
 		}
-		Fail(t, fmt.Sprintf("Should NOT be empty, but was %v", object), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("Should NOT be empty, but was %v", object), msgAndArgs...)
 	}
 
-	return pass
-
+	return true
 }
 
 // getLen try to get length of object.
@@ -642,19 +632,16 @@ func getLen(x any) (ok bool, length int) {
 
 // Len asserts that the specified object has specific length.
 // Len also fails if the object has a type that len() not accept.
-//
-//    assert.Len(t, mySlice, 3)
-func Len(t TestingT, object any, length int, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) Len(object any, length int, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 	ok, l := getLen(object)
 	if !ok {
-		return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", object), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("\"%s\" could not be applied builtin len()", object), msgAndArgs...)
 	}
-
 	if l != length {
-		return Fail(t, fmt.Sprintf("\"%s\" should have %d item(s), but has %d", object, length, l), msgAndArgs...)
+		return a.Fail(fmt.Sprintf("\"%s\" should have %d item(s), but has %d", object, length, l), msgAndArgs...)
 	}
 	return true
 }

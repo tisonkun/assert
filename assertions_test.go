@@ -1143,8 +1143,7 @@ func TestIsEmpty(t *testing.T) {
 }
 
 func TestEmpty(t *testing.T) {
-	mockT := new(testing.T)
-	assertion := New(t)
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
 
 	chWithValue := make(chan struct{}, 1)
 	chWithValue <- struct{}{}
@@ -1161,55 +1160,53 @@ func TestEmpty(t *testing.T) {
 		x int
 	}
 
-	assertion.True(Empty(mockT, ""), "Empty string is empty")
-	assertion.True(Empty(mockT, nil), "Nil is empty")
-	assertion.True(Empty(mockT, []string{}), "Empty string array is empty")
-	assertion.True(Empty(mockT, 0), "Zero int value is empty")
-	assertion.True(Empty(mockT, false), "False value is empty")
-	assertion.True(Empty(mockT, make(chan struct{})), "Channel without values is empty")
-	assertion.True(Empty(mockT, s), "Nil string pointer is empty")
-	assertion.True(Empty(mockT, f), "Nil os.File pointer is empty")
-	assertion.True(Empty(mockT, tiP), "Nil time.Time pointer is empty")
-	assertion.True(Empty(mockT, tiNP), "time.Time is empty")
-	assertion.True(Empty(mockT, TStruct{}), "struct with zero values is empty")
-	assertion.True(Empty(mockT, TString("")), "empty aliased string is empty")
-	assertion.True(Empty(mockT, sP), "ptr to nil value is empty")
+	New(t).True(mockAssertion.Empty(""), "Empty string is empty")
+	New(t).True(mockAssertion.Empty(nil), "Nil is empty")
+	New(t).True(mockAssertion.Empty([]string{}), "Empty string array is empty")
+	New(t).True(mockAssertion.Empty(0), "Zero int value is empty")
+	New(t).True(mockAssertion.Empty(false), "False value is empty")
+	New(t).True(mockAssertion.Empty(make(chan struct{})), "Channel without values is empty")
+	New(t).True(mockAssertion.Empty(s), "Nil string pointer is empty")
+	New(t).True(mockAssertion.Empty(f), "Nil os.File pointer is empty")
+	New(t).True(mockAssertion.Empty(tiP), "Nil time.Time pointer is empty")
+	New(t).True(mockAssertion.Empty(tiNP), "time.Time is empty")
+	New(t).True(mockAssertion.Empty(TStruct{}), "struct with zero values is empty")
+	New(t).True(mockAssertion.Empty(TString("")), "empty aliased string is empty")
+	New(t).True(mockAssertion.Empty(sP), "ptr to nil value is empty")
 
-	assertion.False(Empty(mockT, "something"), "Non Empty string is not empty")
-	assertion.False(Empty(mockT, errors.New("something")), "Non nil object is not empty")
-	assertion.False(Empty(mockT, []string{"something"}), "Non empty string array is not empty")
-	assertion.False(Empty(mockT, 1), "Non-zero int value is not empty")
-	assertion.False(Empty(mockT, true), "True value is not empty")
-	assertion.False(Empty(mockT, chWithValue), "Channel with values is not empty")
-	assertion.False(Empty(mockT, TStruct{x: 1}), "struct with initialized values is empty")
-	assertion.False(Empty(mockT, TString("abc")), "non-empty aliased string is empty")
-	assertion.False(Empty(mockT, xP), "ptr to non-nil value is not empty")
+	New(t).False(mockAssertion.Empty("something"), "Non Empty string is not empty")
+	New(t).False(mockAssertion.Empty(errors.New("something")), "Non nil object is not empty")
+	New(t).False(mockAssertion.Empty([]string{"something"}), "Non empty string array is not empty")
+	New(t).False(mockAssertion.Empty(1), "Non-zero int value is not empty")
+	New(t).False(mockAssertion.Empty(true), "True value is not empty")
+	New(t).False(mockAssertion.Empty(chWithValue), "Channel with values is not empty")
+	New(t).False(mockAssertion.Empty(TStruct{x: 1}), "struct with initialized values is empty")
+	New(t).False(mockAssertion.Empty(TString("abc")), "non-empty aliased string is empty")
+	New(t).False(mockAssertion.Empty(xP), "ptr to non-nil value is not empty")
 }
 
 func TestNotEmpty(t *testing.T) {
-	mockT := new(testing.T)
-	assertion := New(t)
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
 
 	chWithValue := make(chan struct{}, 1)
 	chWithValue <- struct{}{}
 
-	assertion.False(NotEmpty(mockT, ""), "Empty string is empty")
-	assertion.False(NotEmpty(mockT, nil), "Nil is empty")
-	assertion.False(NotEmpty(mockT, []string{}), "Empty string array is empty")
-	assertion.False(NotEmpty(mockT, 0), "Zero int value is empty")
-	assertion.False(NotEmpty(mockT, false), "False value is empty")
-	assertion.False(NotEmpty(mockT, make(chan struct{})), "Channel without values is empty")
+	New(t).False(mockAssertion.NotEmpty(""), "Empty string is empty")
+	New(t).False(mockAssertion.NotEmpty(nil), "Nil is empty")
+	New(t).False(mockAssertion.NotEmpty([]string{}), "Empty string array is empty")
+	New(t).False(mockAssertion.NotEmpty(0), "Zero int value is empty")
+	New(t).False(mockAssertion.NotEmpty(false), "False value is empty")
+	New(t).False(mockAssertion.NotEmpty(make(chan struct{})), "Channel without values is empty")
 
-	assertion.True(NotEmpty(mockT, "something"), "Non Empty string is not empty")
-	assertion.True(NotEmpty(mockT, errors.New("something")), "Non nil object is not empty")
-	assertion.True(NotEmpty(mockT, []string{"something"}), "Non empty string array is not empty")
-	assertion.True(NotEmpty(mockT, 1), "Non-zero int value is not empty")
-	assertion.True(NotEmpty(mockT, true), "True value is not empty")
-	assertion.True(NotEmpty(mockT, chWithValue), "Channel with values is not empty")
+	New(t).True(mockAssertion.NotEmpty("something"), "Non Empty string is not empty")
+	New(t).True(mockAssertion.NotEmpty(errors.New("something")), "Non nil object is not empty")
+	New(t).True(mockAssertion.NotEmpty([]string{"something"}), "Non empty string array is not empty")
+	New(t).True(mockAssertion.NotEmpty(1), "Non-zero int value is not empty")
+	New(t).True(mockAssertion.NotEmpty(true), "True value is not empty")
+	New(t).True(mockAssertion.NotEmpty(chWithValue), "Channel with values is not empty")
 }
 
-func Test_getLen(t *testing.T) {
-	assertion := New(t)
+func TestGetLen(t *testing.T) {
 	falseCases := []any{
 		nil,
 		0,
@@ -1220,7 +1217,7 @@ func Test_getLen(t *testing.T) {
 	}
 	for _, v := range falseCases {
 		ok, l := getLen(v)
-		assertion.False(ok, "Expected getLen fail to get length of %#v", v)
+		New(t).False(ok, "Expected getLen fail to get length of %#v", v)
 		New(t).Equal(0, l, "getLen should return 0 for %#v", v)
 	}
 
@@ -1249,21 +1246,20 @@ func Test_getLen(t *testing.T) {
 
 	for _, c := range trueCases {
 		ok, l := getLen(c.v)
-		assertion.True(ok, "Expected getLen success to get length of %#v", c.v)
+		New(t).True(ok, "Expected getLen success to get length of %#v", c.v)
 		New(t).Equal(c.l, l)
 	}
 }
 
 func TestLen(t *testing.T) {
-	mockT := new(testing.T)
-	assertion := New(t)
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
 
-	assertion.False(Len(mockT, nil, 0), "nil does not have length")
-	assertion.False(Len(mockT, 0, 0), "int does not have length")
-	assertion.False(Len(mockT, true, 0), "true does not have length")
-	assertion.False(Len(mockT, false, 0), "false does not have length")
-	assertion.False(Len(mockT, 'A', 0), "Rune does not have length")
-	assertion.False(Len(mockT, struct{}{}, 0), "Struct does not have length")
+	New(t).False(mockAssertion.Len(nil, 0), "nil does not have length")
+	New(t).False(mockAssertion.Len(0, 0), "int does not have length")
+	New(t).False(mockAssertion.Len(true, 0), "true does not have length")
+	New(t).False(mockAssertion.Len(false, 0), "false does not have length")
+	New(t).False(mockAssertion.Len('A', 0), "Rune does not have length")
+	New(t).False(mockAssertion.Len(struct{}{}, 0), "Struct does not have length")
 
 	ch := make(chan int, 5)
 	ch <- 1
@@ -1290,7 +1286,7 @@ func TestLen(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		assertion.True(Len(mockT, c.v, c.l), "%#v have %d items", c.v, c.l)
+		New(t).True(mockAssertion.Len(c.v, c.l), "%#v have %d items", c.v, c.l)
 	}
 
 	cases = []struct {
@@ -1313,7 +1309,7 @@ func TestLen(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		assertion.False(Len(mockT, c.v, c.l), "%#v have %d items", c.v, c.l)
+		New(t).False(mockAssertion.Len(c.v, c.l), "%#v have %d items", c.v, c.l)
 	}
 }
 
