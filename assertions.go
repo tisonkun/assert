@@ -1714,8 +1714,8 @@ func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.D
 
 // ErrorIs asserts that at least one of the errors in err's chain matches target.
 // This is a wrapper for errors.Is.
-func ErrorIs(t TestingT, err, target error, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) ErrorIs(err, target error, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 	if errors.Is(err, target) {
@@ -1729,7 +1729,7 @@ func ErrorIs(t TestingT, err, target error, msgAndArgs ...any) bool {
 
 	chain := buildErrorChainString(err)
 
-	return Fail(t, fmt.Sprintf("Target error should be in err chain:\n"+
+	return a.Fail(fmt.Sprintf("Target error should be in err chain:\n"+
 		"expected: %q\n"+
 		"in chain: %s", expectedText, chain,
 	), msgAndArgs...)
@@ -1737,10 +1737,11 @@ func ErrorIs(t TestingT, err, target error, msgAndArgs ...any) bool {
 
 // NotErrorIs asserts that at none of the errors in err's chain matches target.
 // This is a wrapper for errors.Is.
-func NotErrorIs(t TestingT, err, target error, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) NotErrorIs(err, target error, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
+
 	if !errors.Is(err, target) {
 		return true
 	}
@@ -1752,7 +1753,7 @@ func NotErrorIs(t TestingT, err, target error, msgAndArgs ...any) bool {
 
 	chain := buildErrorChainString(err)
 
-	return Fail(t, fmt.Sprintf("Target error should not be in err chain:\n"+
+	return a.Fail(fmt.Sprintf("Target error should not be in err chain:\n"+
 		"found: %q\n"+
 		"in chain: %s", expectedText, chain,
 	), msgAndArgs...)
@@ -1760,8 +1761,8 @@ func NotErrorIs(t TestingT, err, target error, msgAndArgs ...any) bool {
 
 // ErrorAs asserts that at least one of the errors in err's chain matches target, and if so, sets target to that error value.
 // This is a wrapper for errors.As.
-func ErrorAs(t TestingT, err error, target any, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) ErrorAs(err error, target any, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 
@@ -1772,7 +1773,7 @@ func ErrorAs(t TestingT, err error, target any, msgAndArgs ...any) bool {
 
 	chain := buildErrorChainString(err)
 
-	return Fail(t, fmt.Sprintf("Should be in error chain:\n"+
+	return a.Fail(fmt.Sprintf("Should be in error chain:\n"+
 		"expected: %q\n"+
 		"in chain: %s", target, chain,
 	), msgAndArgs...)

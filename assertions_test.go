@@ -2177,7 +2177,7 @@ func TestTruncatingFormat(t *testing.T) {
 }
 
 func TestErrorIs(t *testing.T) {
-	mockT := new(testing.T)
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
 	tests := []struct {
 		err    error
 		target error
@@ -2193,16 +2193,13 @@ func TestErrorIs(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(fmt.Sprintf("ErrorIs(%#v,%#v)", tt.err, tt.target), func(t *testing.T) {
-			res := ErrorIs(mockT, tt.err, tt.target)
-			if res != tt.result {
-				t.Errorf("ErrorIs(%#v,%#v) should return %t", tt.err, tt.target, tt.result)
-			}
+			New(t).Equal(tt.result, mockAssertion.ErrorIs(tt.err, tt.target))
 		})
 	}
 }
 
 func TestNotErrorIs(t *testing.T) {
-	mockT := new(testing.T)
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
 	tests := []struct {
 		err    error
 		target error
@@ -2218,16 +2215,13 @@ func TestNotErrorIs(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(fmt.Sprintf("NotErrorIs(%#v,%#v)", tt.err, tt.target), func(t *testing.T) {
-			res := NotErrorIs(mockT, tt.err, tt.target)
-			if res != tt.result {
-				t.Errorf("NotErrorIs(%#v,%#v) should return %t", tt.err, tt.target, tt.result)
-			}
+			New(t).Equal(tt.result, mockAssertion.NotErrorIs(tt.err, tt.target))
 		})
 	}
 }
 
 func TestErrorAs(t *testing.T) {
-	mockT := new(testing.T)
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
 	tests := []struct {
 		err    error
 		result bool
@@ -2240,10 +2234,7 @@ func TestErrorAs(t *testing.T) {
 		tt := tt
 		var target *customError
 		t.Run(fmt.Sprintf("ErrorAs(%#v,%#v)", tt.err, target), func(t *testing.T) {
-			res := ErrorAs(mockT, tt.err, &target)
-			if res != tt.result {
-				t.Errorf("ErrorAs(%#v,%#v) should return %t)", tt.err, target, tt.result)
-			}
+			New(t).Equal(tt.result, mockAssertion.ErrorAs(tt.err, &target))
 		})
 	}
 }
