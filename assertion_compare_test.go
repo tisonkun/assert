@@ -25,8 +25,8 @@ func TestCompare(t *testing.T) {
 	type customString string
 	type customTime time.Time
 	for _, currCase := range []struct {
-		less    interface{}
-		greater interface{}
+		less    any
+		greater any
 		cType   string
 	}{
 		{less: customString("a"), greater: customString("b"), cType: "string"},
@@ -93,7 +93,7 @@ type outputT struct {
 }
 
 // Implements TestingT
-func (t *outputT) Errorf(format string, args ...interface{}) {
+func (t *outputT) Errorf(format string, args ...any) {
 	s := fmt.Sprintf(format, args...)
 	t.buf.WriteString(s)
 }
@@ -136,8 +136,8 @@ func TestGreater(t *testing.T) {
 
 	// Check error report
 	for _, currCase := range []struct {
-		less    interface{}
-		greater interface{}
+		less    any
+		greater any
 		msg     string
 	}{
 		{less: "a", greater: "b", msg: `"a" is not greater than "b"`},
@@ -177,8 +177,8 @@ func TestGreaterOrEqual(t *testing.T) {
 
 	// Check error report
 	for _, currCase := range []struct {
-		less    interface{}
-		greater interface{}
+		less    any
+		greater any
 		msg     string
 	}{
 		{less: "a", greater: "b", msg: `"a" is not greater than or equal to "b"`},
@@ -218,8 +218,8 @@ func TestLess(t *testing.T) {
 
 	// Check error report
 	for _, currCase := range []struct {
-		less    interface{}
-		greater interface{}
+		less    any
+		greater any
 		msg     string
 	}{
 		{less: "a", greater: "b", msg: `"b" is not less than "a"`},
@@ -259,8 +259,8 @@ func TestLessOrEqual(t *testing.T) {
 
 	// Check error report
 	for _, currCase := range []struct {
-		less    interface{}
-		greater interface{}
+		less    any
+		greater any
 		msg     string
 	}{
 		{less: "a", greater: "b", msg: `"b" is not less than or equal to "a"`},
@@ -304,7 +304,7 @@ func TestPositive(t *testing.T) {
 
 	// Check error report
 	for _, currCase := range []struct {
-		e   interface{}
+		e   any
 		msg string
 	}{
 		{e: -1, msg: `"-1" is not positive`},
@@ -343,7 +343,7 @@ func TestNegative(t *testing.T) {
 
 	// Check error report
 	for _, currCase := range []struct {
-		e   interface{}
+		e   any
 		msg string
 	}{
 		{e: 1, msg: `"1" is not negative`},
@@ -365,8 +365,8 @@ func Test_compareTwoValuesDifferentValuesTypes(t *testing.T) {
 	mockT := new(testing.T)
 
 	for _, currCase := range []struct {
-		v1            interface{}
-		v2            interface{}
+		v1            any
+		v2            any
 		compareResult bool
 	}{
 		{v1: 123, v2: "abc"},
@@ -386,8 +386,8 @@ func Test_compareTwoValuesNotComparableValues(t *testing.T) {
 	}
 
 	for _, currCase := range []struct {
-		v1 interface{}
-		v2 interface{}
+		v1 any
+		v2 any
 	}{
 		{v1: CompareStruct{}, v2: CompareStruct{}},
 		{v1: map[string]int{}, v2: map[string]int{}},
@@ -402,8 +402,8 @@ func Test_compareTwoValuesCorrectCompareResult(t *testing.T) {
 	mockT := new(testing.T)
 
 	for _, currCase := range []struct {
-		v1           interface{}
-		v2           interface{}
+		v1           any
+		v2           any
 		compareTypes []CompareType
 	}{
 		{v1: 1, v2: 2, compareTypes: []CompareType{compareLess}},
@@ -435,7 +435,7 @@ func Test_containsValue(t *testing.T) {
 }
 
 func TestComparingMsgAndArgsForwarding(t *testing.T) {
-	msgAndArgs := []interface{}{"format %s %x", "this", 0xc001}
+	msgAndArgs := []any{"format %s %x", "this", 0xc001}
 	expectedOutput := "format this c001\n"
 	funcs := []func(t TestingT){
 		func(t TestingT) { Greater(t, 1, 2, msgAndArgs...) },
