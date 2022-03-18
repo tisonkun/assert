@@ -1396,39 +1396,29 @@ func matchRegexp(rx any, str any) bool {
 }
 
 // Regexp asserts that a specified regexp matches a string.
-//
-//  assert.Regexp(t, regexp.MustCompile("start"), "it's starting")
-//  assert.Regexp(t, "start...$", "it's not starting")
-func Regexp(t TestingT, rx any, str any, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) Regexp(rx any, str any, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 
-	match := matchRegexp(rx, str)
-
-	if !match {
-		Fail(t, fmt.Sprintf("Expect \"%v\" to match \"%v\"", str, rx), msgAndArgs...)
+	if !matchRegexp(rx, str) {
+		return a.Fail(fmt.Sprintf("Expect \"%v\" to match \"%v\"", str, rx), msgAndArgs...)
 	}
 
-	return match
+	return true
 }
 
 // NotRegexp asserts that a specified regexp does not match a string.
-//
-//  assert.NotRegexp(t, regexp.MustCompile("starts"), "it's starting")
-//  assert.NotRegexp(t, "^start", "it's not starting")
-func NotRegexp(t TestingT, rx any, str any, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) NotRegexp(rx any, str any, msgAndArgs ...any) bool {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
-	match := matchRegexp(rx, str)
 
-	if match {
-		Fail(t, fmt.Sprintf("Expect \"%v\" to NOT match \"%v\"", str, rx), msgAndArgs...)
+	if matchRegexp(rx, str) {
+		return a.Fail(fmt.Sprintf("Expect \"%v\" to NOT match \"%v\"", str, rx), msgAndArgs...)
 	}
 
-	return !match
-
+	return true
 }
 
 // Zero asserts that i is the zero value for its type.

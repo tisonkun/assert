@@ -368,7 +368,7 @@ func TestStringEqual(t *testing.T) {
 	} {
 		mockT := &bufferT{}
 		New(mockT).Equal(currCase.equalWant, currCase.equalGot, currCase.msgAndArgs...)
-		Regexp(t, regexp.MustCompile(currCase.want), mockT.buf.String(), "Case %d", i)
+		New(t).Regexp(regexp.MustCompile(currCase.want), mockT.buf.String(), "Case %d", i)
 	}
 }
 
@@ -386,7 +386,7 @@ func TestEqualFormatting(t *testing.T) {
 	} {
 		mockT := &bufferT{}
 		New(mockT).Equal(currCase.equalWant, currCase.equalGot, currCase.msgAndArgs...)
-		Regexp(t, regexp.MustCompile(currCase.want), mockT.buf.String(), "Case %d", i)
+		New(t).Regexp(regexp.MustCompile(currCase.want), mockT.buf.String(), "Case %d", i)
 	}
 }
 
@@ -1538,8 +1538,7 @@ func TestInEpsilonSlice(t *testing.T) {
 }
 
 func TestRegexp(t *testing.T) {
-	mockT := new(testing.T)
-	assertion := New(t)
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
 
 	cases := []struct {
 		rx, str string
@@ -1550,10 +1549,10 @@ func TestRegexp(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		assertion.True(Regexp(mockT, tc.rx, tc.str))
-		assertion.True(Regexp(mockT, regexp.MustCompile(tc.rx), tc.str))
-		assertion.False(NotRegexp(mockT, tc.rx, tc.str))
-		assertion.False(NotRegexp(mockT, regexp.MustCompile(tc.rx), tc.str))
+		New(t).True(mockAssertion.Regexp(tc.rx, tc.str))
+		New(t).True(mockAssertion.Regexp(regexp.MustCompile(tc.rx), tc.str))
+		New(t).False(mockAssertion.NotRegexp(tc.rx, tc.str))
+		New(t).False(mockAssertion.NotRegexp(regexp.MustCompile(tc.rx), tc.str))
 	}
 
 	cases = []struct {
@@ -1565,10 +1564,10 @@ func TestRegexp(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		assertion.False(Regexp(mockT, tc.rx, tc.str), "Expected \"%s\" to not match \"%s\"", tc.rx, tc.str)
-		assertion.False(Regexp(mockT, regexp.MustCompile(tc.rx), tc.str))
-		assertion.True(NotRegexp(mockT, tc.rx, tc.str))
-		assertion.True(NotRegexp(mockT, regexp.MustCompile(tc.rx), tc.str))
+		New(t).False(mockAssertion.Regexp(tc.rx, tc.str), "Expected \"%s\" to not match \"%s\"", tc.rx, tc.str)
+		New(t).False(mockAssertion.Regexp(regexp.MustCompile(tc.rx), tc.str))
+		New(t).True(mockAssertion.NotRegexp(tc.rx, tc.str))
+		New(t).True(mockAssertion.NotRegexp(regexp.MustCompile(tc.rx), tc.str))
 	}
 }
 
@@ -2004,7 +2003,7 @@ func TestTimeEqualityErrorFormatting(t *testing.T) {
 	out := &outputT{buf: bytes.NewBuffer(nil)}
 	New(out).Equal(time.Second*2, time.Millisecond)
 	expectedErr := "\\s+Error Trace:\\s+Error:\\s+Not equal:\\s+\n\\s+expected: 2s\n\\s+actual\\s+: 1ms\n"
-	Regexp(t, regexp.MustCompile(expectedErr), out.buf.String())
+	New(t).Regexp(regexp.MustCompile(expectedErr), out.buf.String())
 }
 
 func TestDiffEmptyCases(t *testing.T) {
