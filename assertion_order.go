@@ -45,21 +45,21 @@ func (a *Assertions) isOrdered(object any, allowedComparesResults []CompareType,
 }
 
 // IsIncreasing asserts that the collection is increasing
-func (a *Assertions) IsIncreasing(object any, msgAndArgs ...any) {
-	a.isOrdered(object, []CompareType{compareLess}, "\"%v\" is not less than \"%v\"", msgAndArgs...)
+func (a *Assertions) IsIncreasing(object any, msgAndArgs ...any) any {
+	return a.isOrdered(object, []CompareType{compareLess}, "\"%v\" is not less than \"%v\"", msgAndArgs...)
 }
 
 // IsNonIncreasing asserts that the collection is not increasing
-func (a *Assertions) IsNonIncreasing(object any, msgAndArgs ...any) {
-	a.isOrdered(object, []CompareType{compareEqual, compareGreater}, "\"%v\" is not greater than or equal to \"%v\"", msgAndArgs...)
+func (a *Assertions) IsNonIncreasing(object any, msgAndArgs ...any) any {
+	return a.isOrdered(object, []CompareType{compareEqual, compareGreater}, "\"%v\" is not greater than or equal to \"%v\"", msgAndArgs...)
 }
 
 // IsDecreasing asserts that the collection is decreasing
-func (a *Assertions) IsDecreasing(object any, msgAndArgs ...any) {
-	a.isOrdered(object, []CompareType{compareGreater}, "\"%v\" is not greater than \"%v\"", msgAndArgs...)
+func (a *Assertions) IsDecreasing(object any, msgAndArgs ...any) any {
+	return a.isOrdered(object, []CompareType{compareGreater}, "\"%v\" is not greater than \"%v\"", msgAndArgs...)
 }
 
 // IsNonDecreasing asserts that the collection is not decreasing
-func (a *Assertions) IsNonDecreasing(object any, msgAndArgs ...any) {
-	a.isOrdered(object, []CompareType{compareLess, compareEqual}, "\"%v\" is not less than or equal to \"%v\"", msgAndArgs...)
+func (a *Assertions) IsNonDecreasing(object any, msgAndArgs ...any) any {
+	return a.isOrdered(object, []CompareType{compareLess, compareEqual}, "\"%v\" is not less than or equal to \"%v\"", msgAndArgs...)
 }
