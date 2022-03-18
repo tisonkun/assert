@@ -731,7 +731,7 @@ func TestNotSubsetNil(t *testing.T) {
 	}
 }
 
-func Test_containsElement(t *testing.T) {
+func TestContainsElement(t *testing.T) {
 	assertion := New(t)
 	list1 := []string{"Foo", "Bar"}
 	list2 := []int{1, 2}
@@ -2078,10 +2078,9 @@ func BenchmarkBytesEqual(b *testing.B) {
 	s2 := make([]byte, size)
 	copy(s2, s)
 
-	mockT := new(testing.T)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		NewWithOnFailureNoop(mockT).Equal(s, s2)
+		New(b).Equal(s, s2)
 	}
 }
 
@@ -2148,7 +2147,7 @@ func TestEventuallyIssue805(t *testing.T) {
 	})
 }
 
-func Test_validateEqualArgs(t *testing.T) {
+func TestValidateEqualArgs(t *testing.T) {
 	if validateEqualArgs(func() {}, func() {}) == nil {
 		t.Error("non-nil functions should error")
 	}
