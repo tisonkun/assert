@@ -329,53 +329,53 @@ func compare(obj1, obj2 any, kind reflect.Kind) (CompareType, bool) {
 }
 
 // Greater asserts that the first element is greater than the second
-func (a *Assertions) Greater(e1 any, e2 any, msgAndArgs ...any) {
+func (a *Assertions) Greater(e1 any, e2 any, msgAndArgs ...any) any {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
-	a.compareTwoValues(e1, e2, []CompareType{compareGreater}, "\"%v\" is not greater than \"%v\"", msgAndArgs...)
+	return a.compareTwoValues(e1, e2, []CompareType{compareGreater}, "\"%v\" is not greater than \"%v\"", msgAndArgs...)
 }
 
 // GreaterOrEqual asserts that the first element is greater than or equal to the second
-func (a *Assertions) GreaterOrEqual(e1 any, e2 any, msgAndArgs ...any) {
+func (a *Assertions) GreaterOrEqual(e1 any, e2 any, msgAndArgs ...any) any {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
-	a.compareTwoValues(e1, e2, []CompareType{compareGreater, compareEqual}, "\"%v\" is not greater than or equal to \"%v\"", msgAndArgs...)
+	return a.compareTwoValues(e1, e2, []CompareType{compareGreater, compareEqual}, "\"%v\" is not greater than or equal to \"%v\"", msgAndArgs...)
 }
 
 // Less asserts that the first element is less than the second
-func (a *Assertions) Less(e1 any, e2 any, msgAndArgs ...any) {
+func (a *Assertions) Less(e1 any, e2 any, msgAndArgs ...any) any {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
-	a.compareTwoValues(e1, e2, []CompareType{compareLess}, "\"%v\" is not less than \"%v\"", msgAndArgs...)
+	return a.compareTwoValues(e1, e2, []CompareType{compareLess}, "\"%v\" is not less than \"%v\"", msgAndArgs...)
 }
 
 // LessOrEqual asserts that the first element is less than or equal to the second
-func (a *Assertions) LessOrEqual(e1 any, e2 any, msgAndArgs ...any) {
+func (a *Assertions) LessOrEqual(e1 any, e2 any, msgAndArgs ...any) any {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
-	a.compareTwoValues(e1, e2, []CompareType{compareLess, compareEqual}, "\"%v\" is not less than or equal to \"%v\"", msgAndArgs...)
+	return a.compareTwoValues(e1, e2, []CompareType{compareLess, compareEqual}, "\"%v\" is not less than or equal to \"%v\"", msgAndArgs...)
 }
 
 // Positive asserts that the specified element is positive
-func (a *Assertions) Positive(e any, msgAndArgs ...any) {
+func (a *Assertions) Positive(e any, msgAndArgs ...any) any {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 	zero := reflect.Zero(reflect.TypeOf(e))
-	a.compareTwoValues(e, zero.Interface(), []CompareType{compareGreater}, "\"%v\" is not positive", msgAndArgs...)
+	return a.compareTwoValues(e, zero.Interface(), []CompareType{compareGreater}, "\"%v\" is not positive", msgAndArgs...)
 }
 
 // Negative asserts that the specified element is negative
-func (a *Assertions) Negative(e any, msgAndArgs ...any) {
+func (a *Assertions) Negative(e any, msgAndArgs ...any) any {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 	zero := reflect.Zero(reflect.TypeOf(e))
-	a.compareTwoValues(e, zero.Interface(), []CompareType{compareLess}, "\"%v\" is not negative", msgAndArgs...)
+	return a.compareTwoValues(e, zero.Interface(), []CompareType{compareLess}, "\"%v\" is not negative", msgAndArgs...)
 }
 
 func (a *Assertions) compareTwoValues(e1 any, e2 any, allowedComparesResults []CompareType, failMessage string, msgAndArgs ...any) any {

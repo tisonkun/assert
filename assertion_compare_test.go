@@ -90,19 +90,15 @@ func TestCompare(t *testing.T) {
 type outputT struct {
 	buf     *bytes.Buffer
 	helpers map[string]struct{}
-	failed  bool
 }
 
 // Implements TestingT
 func (t *outputT) Errorf(format string, args ...any) {
 	s := fmt.Sprintf(format, args...)
 	t.buf.WriteString(s)
-	t.failed = true
 }
 
-func (t *outputT) FailNow() {
-	t.failed = true
-}
+func (t *outputT) FailNow() {}
 
 func (t *outputT) Helper() {
 	if t.helpers == nil {
@@ -126,22 +122,10 @@ func callerName(skip int) string {
 }
 
 func TestGreater(t *testing.T) {
-	assertion := New(t)
-
-	mockT := new(mockTestingT)
-	mockAssertion := New(mockT)
-
-	mockT.reset()
-	mockAssertion.Greater(2, 1)
-	assertion.False(mockT.failed)
-
-	mockT.reset()
-	mockAssertion.Greater(1, 1)
-	assertion.True(mockT.failed)
-
-	mockT.reset()
-	mockAssertion.Greater(1, 2)
-	assertion.True(mockT.failed)
+	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
+	Nil(t, mockAssertion.Greater(2, 1))
+	NotNil(t, mockAssertion.Greater(1, 1))
+	NotNil(t, mockAssertion.Greater(1, 2))
 
 	// Check error report
 	for _, currCase := range []struct {
@@ -163,31 +147,18 @@ func TestGreater(t *testing.T) {
 		{less: 1.23, greater: 2.34, msg: `"1.23" is not greater than "2.34"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
-		outAssertion := New(out)
-		outAssertion.Greater(currCase.less, currCase.greater)
-		assertion.True(out.failed)
+		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
+		NotNil(t, outAssertion.Greater(currCase.less, currCase.greater))
 		Contains(t, out.buf.String(), currCase.msg)
 		Contains(t, out.helpers, "github.com/tisonkun/assert.(*Assertions).Greater")
 	}
 }
 
 func TestGreaterOrEqual(t *testing.T) {
-	assertion := New(t)
-
-	mockT := new(mockTestingT)
-	mockAssertion := New(mockT)
-
-	mockT.reset()
-	mockAssertion.GreaterOrEqual(2, 1)
-	assertion.False(mockT.failed)
-
-	mockT.reset()
-	mockAssertion.GreaterOrEqual(1, 1)
-	assertion.False(mockT.failed)
-
-	mockT.reset()
-	mockAssertion.GreaterOrEqual(1, 2)
-	assertion.True(mockT.failed)
+	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
+	Nil(t, mockAssertion.GreaterOrEqual(2, 1))
+	Nil(t, mockAssertion.GreaterOrEqual(1, 1))
+	NotNil(t, mockAssertion.GreaterOrEqual(1, 2))
 
 	// Check error report
 	for _, currCase := range []struct {
@@ -209,31 +180,18 @@ func TestGreaterOrEqual(t *testing.T) {
 		{less: 1.23, greater: 2.34, msg: `"1.23" is not greater than or equal to "2.34"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
-		outAssertion := New(out)
-		outAssertion.GreaterOrEqual(currCase.less, currCase.greater)
-		assertion.True(out.failed)
+		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
+		NotNil(t, outAssertion.GreaterOrEqual(currCase.less, currCase.greater))
 		Contains(t, out.buf.String(), currCase.msg)
 		Contains(t, out.helpers, "github.com/tisonkun/assert.(*Assertions).GreaterOrEqual")
 	}
 }
 
 func TestLess(t *testing.T) {
-	assertion := New(t)
-
-	mockT := new(mockTestingT)
-	mockAssertion := New(mockT)
-
-	mockT.reset()
-	mockAssertion.Less(2, 1)
-	assertion.True(mockT.failed)
-
-	mockT.reset()
-	mockAssertion.Less(1, 1)
-	assertion.True(mockT.failed)
-
-	mockT.reset()
-	mockAssertion.Less(1, 2)
-	assertion.False(mockT.failed)
+	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
+	NotNil(t, mockAssertion.Less(2, 1))
+	NotNil(t, mockAssertion.Less(1, 1))
+	Nil(t, mockAssertion.Less(1, 2))
 
 	// Check error report
 	for _, currCase := range []struct {
@@ -255,31 +213,18 @@ func TestLess(t *testing.T) {
 		{less: 1.23, greater: 2.34, msg: `"2.34" is not less than "1.23"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
-		outAssertion := New(out)
-		outAssertion.Less(currCase.greater, currCase.less)
-		assertion.True(out.failed)
+		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
+		NotNil(t, outAssertion.Less(currCase.greater, currCase.less))
 		Contains(t, out.buf.String(), currCase.msg)
 		Contains(t, out.helpers, "github.com/tisonkun/assert.(*Assertions).Less")
 	}
 }
 
 func TestLessOrEqual(t *testing.T) {
-	assertion := New(t)
-
-	mockT := new(mockTestingT)
-	mockAssertion := New(mockT)
-
-	mockT.reset()
-	mockAssertion.LessOrEqual(2, 1)
-	assertion.True(mockT.failed)
-
-	mockT.reset()
-	mockAssertion.LessOrEqual(1, 1)
-	assertion.False(mockT.failed)
-
-	mockT.reset()
-	mockAssertion.LessOrEqual(1, 2)
-	assertion.False(mockT.failed)
+	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
+	NotNil(t, mockAssertion.LessOrEqual(2, 1))
+	Nil(t, mockAssertion.LessOrEqual(1, 1))
+	Nil(t, mockAssertion.LessOrEqual(1, 2))
 
 	// Check error report
 	for _, currCase := range []struct {
@@ -301,39 +246,20 @@ func TestLessOrEqual(t *testing.T) {
 		{less: 1.23, greater: 2.34, msg: `"2.34" is not less than or equal to "1.23"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
-		outAssertion := New(out)
-		outAssertion.LessOrEqual(currCase.greater, currCase.less)
-		assertion.True(out.failed)
+		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
+		NotNil(t, outAssertion.LessOrEqual(currCase.greater, currCase.less))
 		Contains(t, out.buf.String(), currCase.msg)
 		Contains(t, out.helpers, "github.com/tisonkun/assert.(*Assertions).LessOrEqual")
 	}
 }
 
 func TestPositive(t *testing.T) {
-	assertion := New(t)
-
-	mockT := new(mockTestingT)
-	mockAssertion := New(mockT)
-
-	mockT.reset()
-	mockAssertion.Positive(1)
-	assertion.False(mockT.failed)
-
-	mockT.reset()
-	mockAssertion.Positive(1.23)
-	assertion.False(mockT.failed)
-
-	mockT.reset()
-	mockAssertion.Positive(0)
-	assertion.True(mockT.failed)
-
-	mockT.reset()
-	mockAssertion.Positive(-1)
-	assertion.True(mockT.failed)
-
-	mockT.reset()
-	mockAssertion.Positive(-1.23)
-	assertion.True(mockT.failed)
+	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
+	Nil(t, mockAssertion.Positive(1))
+	Nil(t, mockAssertion.Positive(1.23))
+	NotNil(t, mockAssertion.Positive(0))
+	NotNil(t, mockAssertion.Positive(-1))
+	NotNil(t, mockAssertion.Positive(-1.23))
 
 	// Check error report
 	for _, currCase := range []struct {
@@ -349,39 +275,20 @@ func TestPositive(t *testing.T) {
 		{e: -1.23, msg: `"-1.23" is not positive`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
-		outAssertion := New(out)
-		outAssertion.Positive(currCase.e)
-		assertion.True(out.failed)
+		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
+		NotNil(t, outAssertion.Positive(currCase.e))
 		Contains(t, out.buf.String(), currCase.msg)
 		Contains(t, out.helpers, "github.com/tisonkun/assert.(*Assertions).Positive")
 	}
 }
 
 func TestNegative(t *testing.T) {
-	assertion := New(t)
-
-	mockT := new(mockTestingT)
-	mockAssertion := New(mockT)
-
-	mockT.reset()
-	mockAssertion.Negative(1)
-	assertion.True(mockT.failed)
-
-	mockT.reset()
-	mockAssertion.Negative(1.23)
-	assertion.True(mockT.failed)
-
-	mockT.reset()
-	mockAssertion.Negative(0)
-	assertion.True(mockT.failed)
-
-	mockT.reset()
-	mockAssertion.Negative(-1)
-	assertion.False(mockT.failed)
-
-	mockT.reset()
-	mockAssertion.Negative(-1.23)
-	assertion.False(mockT.failed)
+	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
+	NotNil(t, mockAssertion.Negative(1))
+	NotNil(t, mockAssertion.Negative(1.23))
+	NotNil(t, mockAssertion.Negative(0))
+	Nil(t, mockAssertion.Negative(-1))
+	Nil(t, mockAssertion.Negative(-1.23))
 
 	// Check error report
 	for _, currCase := range []struct {
@@ -397,19 +304,15 @@ func TestNegative(t *testing.T) {
 		{e: 1.23, msg: `"1.23" is not negative`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
-		outAssertion := New(out)
-		outAssertion.Negative(currCase.e)
-		assertion.True(out.failed)
+		outAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
+		NotNil(t, outAssertion.Negative(currCase.e))
 		Contains(t, out.buf.String(), currCase.msg)
 		Contains(t, out.helpers, "github.com/tisonkun/assert.(*Assertions).Negative")
 	}
 }
 
 func Test_compareTwoValuesDifferentValuesTypes(t *testing.T) {
-	assertion := New(t)
-	mockT := new(mockTestingT)
-	mockAssertion := New(mockT)
-
+	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
 	for _, currCase := range []struct {
 		v1            any
 		v2            any
@@ -420,20 +323,13 @@ func Test_compareTwoValuesDifferentValuesTypes(t *testing.T) {
 		{v1: float64(12), v2: "123"},
 		{v1: "float(12)", v2: float64(1)},
 	} {
-		mockT.reset()
-		mockAssertion.compareTwoValues(currCase.v1, currCase.v2, []CompareType{compareLess, compareEqual, compareGreater}, "testFailMessage")
-		assertion.True(mockT.failed)
+		NotNil(t, mockAssertion.compareTwoValues(currCase.v1, currCase.v2, []CompareType{compareLess, compareEqual, compareGreater}, "testFailMessage"))
 	}
 }
 
 func Test_compareTwoValuesNotComparableValues(t *testing.T) {
-	assertion := New(t)
-	mockT := new(mockTestingT)
-	mockAssertion := New(mockT)
-
-	type CompareStruct struct {
-	}
-
+	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
+	type CompareStruct struct{}
 	for _, currCase := range []struct {
 		v1 any
 		v2 any
@@ -442,17 +338,12 @@ func Test_compareTwoValuesNotComparableValues(t *testing.T) {
 		{v1: map[string]int{}, v2: map[string]int{}},
 		{v1: make([]int, 5), v2: make([]int, 5)},
 	} {
-		mockT.reset()
-		mockAssertion.compareTwoValues(currCase.v1, currCase.v2, []CompareType{compareLess, compareEqual, compareGreater}, "testFailMessage")
-		assertion.True(mockT.failed)
+		NotNil(t, mockAssertion.compareTwoValues(currCase.v1, currCase.v2, []CompareType{compareLess, compareEqual, compareGreater}, "testFailMessage"))
 	}
 }
 
 func Test_compareTwoValuesCorrectCompareResult(t *testing.T) {
-	assertion := New(t)
-	mockT := new(mockTestingT)
-	mockAssertion := New(mockT)
-
+	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
 	for _, currCase := range []struct {
 		v1           any
 		v2           any
@@ -465,9 +356,7 @@ func Test_compareTwoValuesCorrectCompareResult(t *testing.T) {
 		{v1: 2, v2: 1, compareTypes: []CompareType{compareEqual, compareGreater}},
 		{v1: 2, v2: 1, compareTypes: []CompareType{compareGreater}},
 	} {
-		mockT.reset()
-		mockAssertion.compareTwoValues(currCase.v1, currCase.v2, currCase.compareTypes, "testFailMessage")
-		assertion.False(mockT.failed)
+		Nil(t, mockAssertion.compareTwoValues(currCase.v1, currCase.v2, currCase.compareTypes, "testFailMessage"))
 	}
 }
 

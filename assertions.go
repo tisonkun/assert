@@ -234,13 +234,13 @@ func indentMessageLines(message string, longestLabelLen int) string {
 }
 
 // FailNow fails test
-func FailNow(t TestingT, failureMessage string, msgAndArgs ...any) bool {
-	if h, ok := t.(tHelper); ok {
+func (a *Assertions) FailNow(failureMessage string, msgAndArgs ...any) any {
+	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
-	Fail(t, failureMessage, msgAndArgs...)
-	t.FailNow()
-	return false
+	r := a.Fail(failureMessage, msgAndArgs...)
+	a.t.FailNow()
+	return r
 }
 
 func (a *Assertions) Fail(failureMessage string, msgAndArgs ...any) any {

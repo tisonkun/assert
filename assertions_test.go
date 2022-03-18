@@ -441,35 +441,21 @@ func TestNil(t *testing.T) {
 }
 
 func TestTrue(t *testing.T) {
-	mockT := new(mockTestingT)
-	mockAssertion := New(mockT)
-
-	mockT.reset()
-	mockAssertion.True(true)
-	if mockT.failed {
+	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
+	if mockAssertion.True(true) != nil {
 		t.Error("True should return true")
 	}
-
-	mockT.reset()
-	mockAssertion.True(false)
-	if !mockT.failed {
+	if mockAssertion.True(false) == nil {
 		t.Error("True should return false")
 	}
 }
 
 func TestFalse(t *testing.T) {
-	mockT := new(mockTestingT)
-	mockAssertion := New(mockT)
-
-	mockT.reset()
-	mockAssertion.False(false)
-	if mockT.failed {
+	mockAssertion := New(new(testing.T)).WithOnFailure(func(t TestingT) any { return -1 })
+	if mockAssertion.False(false) != nil {
 		t.Error("False should return true")
 	}
-
-	mockT.reset()
-	mockAssertion.False(true)
-	if !mockT.failed {
+	if mockAssertion.False(true) == nil {
 		t.Error("False should return false")
 	}
 }
@@ -652,27 +638,28 @@ func TestContainsNotContains(t *testing.T) {
 }
 
 func TestContainsFailMessage(t *testing.T) {
-	mockT := new(mockTestingT)
-
-	Contains(mockT, "hello world", errors.New("hello"))
+	out := &outputT{buf: bytes.NewBuffer(nil)}
+	Contains(out, "hello world", errors.New("hello"))
 	expectedFail := "\"hello world\" does not contain &errors.errorString{s:\"hello\"}"
-	actualFail := mockT.errorString()
+	actualFail := out.buf.String()
 	if !strings.Contains(actualFail, expectedFail) {
 		t.Errorf("Contains failure should include %q but was %q", expectedFail, actualFail)
 	}
 }
 
 func TestContainsNotContainsOnNilValue(t *testing.T) {
-	mockT := new(mockTestingT)
-
-	Contains(mockT, nil, "key")
+	out := &outputT{buf: bytes.NewBuffer(nil)}
+	Contains(out, nil, "key")
 	expectedFail := "<nil> could not be applied builtin len()"
-	actualFail := mockT.errorString()
+	actualFail := out.buf.String()
 	if !strings.Contains(actualFail, expectedFail) {
 		t.Errorf("Contains failure should include %q but was %q", expectedFail, actualFail)
 	}
 
-	NotContains(mockT, nil, "key")
+	out = &outputT{buf: bytes.NewBuffer(nil)}
+	NotContains(out, nil, "key")
+	expectedFail = "\"%!s(<nil>)\" could not be applied builtin len()"
+	actualFail = out.buf.String()
 	if !strings.Contains(actualFail, expectedFail) {
 		t.Errorf("Contains failure should include %q but was %q", expectedFail, actualFail)
 	}
@@ -2079,12 +2066,10 @@ Diff:
 }
 
 func TestTimeEqualityErrorFormatting(t *testing.T) {
-	mockT := new(mockTestingT)
-
-	Equal(mockT, time.Second*2, time.Millisecond)
-
+	out := &outputT{buf: bytes.NewBuffer(nil)}
+	Equal(out, time.Second*2, time.Millisecond)
 	expectedErr := "\\s+Error Trace:\\s+Error:\\s+Not equal:\\s+\n\\s+expected: 2s\n\\s+actual\\s+: 1ms\n"
-	Regexp(t, regexp.MustCompile(expectedErr), mockT.errorString())
+	Regexp(t, regexp.MustCompile(expectedErr), out.buf.String())
 }
 
 func TestDiffEmptyCases(t *testing.T) {
@@ -2130,37 +2115,10 @@ func TestDiffRace(t *testing.T) {
 	}
 }
 
-type mockTestingT struct {
-	errorFmt string
-	args     []any
-	failed   bool
-}
-
-func (m *mockTestingT) errorString() string {
-	return fmt.Sprintf(m.errorFmt, m.args...)
-}
-
-func (m *mockTestingT) reset() {
-	m.errorFmt = ""
-	m.args = nil
-	m.failed = false
-}
-
-func (m *mockTestingT) Errorf(format string, args ...any) {
-	m.errorFmt = format
-	m.args = args
-	m.failed = true
-}
-
-func (m *mockTestingT) FailNow() {
-	m.failed = true
-}
-
 func TestFailNow(t *testing.T) {
-	assertion := New(t)
-	mockT := &mockTestingT{}
-	FailNow(mockT, "failed")
-	assertion.True(mockT.failed)
+	out := &outputT{buf: bytes.NewBuffer(nil)}
+	mockAssertion := New(out).WithOnFailure(func(t TestingT) any { return -1 })
+	NotNil(t, mockAssertion.FailNow("failed"))
 }
 
 func TestBytesEqual(t *testing.T) {
@@ -2185,7 +2143,7 @@ func BenchmarkBytesEqual(b *testing.B) {
 	s2 := make([]byte, size)
 	copy(s2, s)
 
-	mockT := &mockTestingT{}
+	mockT := new(testing.T)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		Equal(mockT, s, s2)
