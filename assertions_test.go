@@ -242,7 +242,6 @@ func TestSame(t *testing.T) {
 }
 
 func TestNotSame(t *testing.T) {
-
 	mockT := new(testing.T)
 
 	if !NotSame(mockT, ptr(1), ptr(1)) {
@@ -270,37 +269,38 @@ func Test_samePointers(t *testing.T) {
 	tests := []struct {
 		name      string
 		args      args
-		assertion BoolAssertionFunc
+		assertion func(*Assertions, bool, ...any)
 	}{
 		{
 			name:      "1 != 2",
 			args:      args{first: 1, second: 2},
-			assertion: False,
+			assertion: (*Assertions).False,
 		},
 		{
 			name:      "1 != 1 (not same ptr)",
 			args:      args{first: 1, second: 1},
-			assertion: False,
+			assertion: (*Assertions).False,
 		},
 		{
 			name:      "ptr(1) == ptr(1)",
 			args:      args{first: p, second: p},
-			assertion: True,
+			assertion: (*Assertions).True,
 		},
 		{
 			name:      "int(1) != float32(1)",
 			args:      args{first: 1, second: float32(1)},
-			assertion: False,
+			assertion: (*Assertions).False,
 		},
 		{
 			name:      "array != slice",
 			args:      args{first: [2]int{1, 2}, second: []int{1, 2}},
-			assertion: False,
+			assertion: (*Assertions).False,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.assertion(t, samePointers(tt.args.first, tt.args.second))
+			assertion := New(t, FailNowOnFailure)
+			tt.assertion(assertion, samePointers(tt.args.first, tt.args.second))
 		})
 	}
 }
@@ -441,29 +441,35 @@ func TestNil(t *testing.T) {
 }
 
 func TestTrue(t *testing.T) {
-
+	var failed bool
 	mockT := new(testing.T)
-
-	if !True(mockT, true) {
+	assertion := New(mockT, func(t TestingT) {
+		failed = true
+	})
+	assertion.True(true)
+	if failed {
 		t.Error("True should return true")
 	}
-	if True(mockT, false) {
+	assertion.True(false)
+	if !failed {
 		t.Error("True should return false")
 	}
-
 }
 
 func TestFalse(t *testing.T) {
-
+	var failed bool
 	mockT := new(testing.T)
-
-	if !False(mockT, false) {
-		t.Error("False should return true")
+	assertion := New(mockT, func(t TestingT) {
+		failed = true
+	})
+	assertion.False(false)
+	if failed {
+		t.Error("True should return true")
 	}
-	if False(mockT, true) {
-		t.Error("False should return false")
+	assertion.False(true)
+	if !failed {
+		t.Error("True should return false")
 	}
-
 }
 
 func TestExactly(t *testing.T) {
@@ -733,54 +739,54 @@ func TestNotSubsetNil(t *testing.T) {
 }
 
 func Test_containsElement(t *testing.T) {
-
+	assertion := New(t, FailNowOnFailure)
 	list1 := []string{"Foo", "Bar"}
 	list2 := []int{1, 2}
 	simpleMap := map[any]any{"Foo": "Bar"}
 
 	ok, found := containsElement("Hello World", "World")
-	True(t, ok)
-	True(t, found)
+	assertion.True(ok)
+	assertion.True(found)
 
 	ok, found = containsElement(list1, "Foo")
-	True(t, ok)
-	True(t, found)
+	assertion.True(ok)
+	assertion.True(found)
 
 	ok, found = containsElement(list1, "Bar")
-	True(t, ok)
-	True(t, found)
+	assertion.True(ok)
+	assertion.True(found)
 
 	ok, found = containsElement(list2, 1)
-	True(t, ok)
-	True(t, found)
+	assertion.True(ok)
+	assertion.True(found)
 
 	ok, found = containsElement(list2, 2)
-	True(t, ok)
-	True(t, found)
+	assertion.True(ok)
+	assertion.True(found)
 
 	ok, found = containsElement(list1, "Foo!")
-	True(t, ok)
-	False(t, found)
+	assertion.True(ok)
+	assertion.False(found)
 
 	ok, found = containsElement(list2, 3)
-	True(t, ok)
-	False(t, found)
+	assertion.True(ok)
+	assertion.False(found)
 
 	ok, found = containsElement(list2, "1")
-	True(t, ok)
-	False(t, found)
+	assertion.True(ok)
+	assertion.False(found)
 
 	ok, found = containsElement(simpleMap, "Foo")
-	True(t, ok)
-	True(t, found)
+	assertion.True(ok)
+	assertion.True(found)
 
 	ok, found = containsElement(simpleMap, "Bar")
-	True(t, ok)
-	False(t, found)
+	assertion.True(ok)
+	assertion.False(found)
 
 	ok, found = containsElement(1433, "1")
-	False(t, ok)
-	False(t, found)
+	assertion.False(ok)
+	assertion.False(found)
 }
 
 func TestElementsMatch(t *testing.T) {
@@ -1021,18 +1027,18 @@ func TestNotPanics(t *testing.T) {
 }
 
 func TestNoError(t *testing.T) {
-
 	mockT := new(testing.T)
+	assertion := New(t, FailNowOnFailure)
 
 	// start with a nil error
 	var err error
 
-	True(t, NoError(mockT, err), "NoError should return True for nil arg")
+	assertion.True(NoError(mockT, err), "NoError should return True for nil arg")
 
 	// now set an error
 	err = errors.New("some error")
 
-	False(t, NoError(mockT, err), "NoError with error should return False")
+	assertion.False(NoError(mockT, err), "NoError with error should return False")
 
 	// returning an empty error interface
 	err = func() error {
@@ -1044,7 +1050,7 @@ func TestNoError(t *testing.T) {
 		t.Errorf("Error should be nil due to empty interface: %s", err)
 	}
 
-	False(t, NoError(mockT, err), "NoError should fail with empty error interface")
+	assertion.False(NoError(mockT, err), "NoError should fail with empty error interface")
 }
 
 type customError struct{}
@@ -1052,18 +1058,18 @@ type customError struct{}
 func (*customError) Error() string { return "fail" }
 
 func TestError(t *testing.T) {
-
 	mockT := new(testing.T)
+	assertion := New(t, FailNowOnFailure)
 
 	// start with a nil error
 	var err error
 
-	False(t, Error(mockT, err), "Error should return False for nil arg")
+	assertion.False(Error(mockT, err), "Error should return False for nil arg")
 
 	// now set an error
 	err = errors.New("some error")
 
-	True(t, Error(mockT, err), "Error with error should return True")
+	assertion.True(Error(mockT, err), "Error with error should return True")
 
 	// returning an empty error interface
 	err = func() error {
@@ -1075,72 +1081,75 @@ func TestError(t *testing.T) {
 		t.Errorf("Error should be nil due to empty interface: %s", err)
 	}
 
-	True(t, Error(mockT, err), "Error should pass with empty error interface")
+	assertion.True(Error(mockT, err), "Error should pass with empty error interface")
 }
 
 func TestEqualError(t *testing.T) {
 	mockT := new(testing.T)
+	assertion := New(t, FailNowOnFailure)
 
 	// start with a nil error
 	var err error
-	False(t, EqualError(mockT, err, ""),
+	assertion.False(EqualError(mockT, err, ""),
 		"EqualError should return false for nil arg")
 
 	// now set an error
 	err = errors.New("some error")
-	False(t, EqualError(mockT, err, "Not some error"),
+	assertion.False(EqualError(mockT, err, "Not some error"),
 		"EqualError should return false for different error string")
-	True(t, EqualError(mockT, err, "some error"),
+	assertion.True(EqualError(mockT, err, "some error"),
 		"EqualError should return true")
 }
 
 func TestErrorContains(t *testing.T) {
 	mockT := new(testing.T)
+	assertion := New(t, FailNowOnFailure)
 
 	// start with a nil error
 	var err error
-	False(t, ErrorContains(mockT, err, ""),
+	assertion.False(ErrorContains(mockT, err, ""),
 		"ErrorContains should return false for nil arg")
 
 	// now set an error
 	err = errors.New("some error: another error")
-	False(t, ErrorContains(mockT, err, "bad error"),
+	assertion.False(ErrorContains(mockT, err, "bad error"),
 		"ErrorContains should return false for different error string")
-	True(t, ErrorContains(mockT, err, "some error"),
+	assertion.True(ErrorContains(mockT, err, "some error"),
 		"ErrorContains should return true")
-	True(t, ErrorContains(mockT, err, "another error"),
+	assertion.True(ErrorContains(mockT, err, "another error"),
 		"ErrorContains should return true")
 }
 
 func Test_isEmpty(t *testing.T) {
-
+	assertion := New(t, FailNowOnFailure)
 	chWithValue := make(chan struct{}, 1)
 	chWithValue <- struct{}{}
 
-	True(t, isEmpty(""))
-	True(t, isEmpty(nil))
-	True(t, isEmpty([]string{}))
-	True(t, isEmpty(0))
-	True(t, isEmpty(int32(0)))
-	True(t, isEmpty(int64(0)))
-	True(t, isEmpty(false))
-	True(t, isEmpty(map[string]string{}))
-	True(t, isEmpty(new(time.Time)))
-	True(t, isEmpty(time.Time{}))
-	True(t, isEmpty(make(chan struct{})))
-	False(t, isEmpty("something"))
-	False(t, isEmpty(errors.New("something")))
-	False(t, isEmpty([]string{"something"}))
-	False(t, isEmpty(1))
-	False(t, isEmpty(true))
-	False(t, isEmpty(map[string]string{"Hello": "World"}))
-	False(t, isEmpty(chWithValue))
+	assertion.True(isEmpty(""))
+	assertion.True(isEmpty(nil))
+	assertion.True(isEmpty([]string{}))
+	assertion.True(isEmpty(0))
+	assertion.True(isEmpty(int32(0)))
+	assertion.True(isEmpty(int64(0)))
+	assertion.True(isEmpty(false))
+	assertion.True(isEmpty(map[string]string{}))
+	assertion.True(isEmpty(new(time.Time)))
+	assertion.True(isEmpty(time.Time{}))
+	assertion.True(isEmpty(make(chan struct{})))
+	assertion.False(isEmpty("something"))
+	assertion.False(isEmpty(errors.New("something")))
+	assertion.False(isEmpty([]string{"something"}))
+	assertion.False(isEmpty(1))
+	assertion.False(isEmpty(true))
+	assertion.False(isEmpty(map[string]string{"Hello": "World"}))
+	assertion.False(isEmpty(chWithValue))
 
 }
 
 func TestEmpty(t *testing.T) {
-
 	mockT := new(testing.T)
+	assertion := New(t, FailNowOnFailure)
+
 	chWithValue := make(chan struct{}, 1)
 	chWithValue <- struct{}{}
 	var tiP *time.Time
@@ -1156,53 +1165,55 @@ func TestEmpty(t *testing.T) {
 		x int
 	}
 
-	True(t, Empty(mockT, ""), "Empty string is empty")
-	True(t, Empty(mockT, nil), "Nil is empty")
-	True(t, Empty(mockT, []string{}), "Empty string array is empty")
-	True(t, Empty(mockT, 0), "Zero int value is empty")
-	True(t, Empty(mockT, false), "False value is empty")
-	True(t, Empty(mockT, make(chan struct{})), "Channel without values is empty")
-	True(t, Empty(mockT, s), "Nil string pointer is empty")
-	True(t, Empty(mockT, f), "Nil os.File pointer is empty")
-	True(t, Empty(mockT, tiP), "Nil time.Time pointer is empty")
-	True(t, Empty(mockT, tiNP), "time.Time is empty")
-	True(t, Empty(mockT, TStruct{}), "struct with zero values is empty")
-	True(t, Empty(mockT, TString("")), "empty aliased string is empty")
-	True(t, Empty(mockT, sP), "ptr to nil value is empty")
+	assertion.True(Empty(mockT, ""), "Empty string is empty")
+	assertion.True(Empty(mockT, nil), "Nil is empty")
+	assertion.True(Empty(mockT, []string{}), "Empty string array is empty")
+	assertion.True(Empty(mockT, 0), "Zero int value is empty")
+	assertion.True(Empty(mockT, false), "False value is empty")
+	assertion.True(Empty(mockT, make(chan struct{})), "Channel without values is empty")
+	assertion.True(Empty(mockT, s), "Nil string pointer is empty")
+	assertion.True(Empty(mockT, f), "Nil os.File pointer is empty")
+	assertion.True(Empty(mockT, tiP), "Nil time.Time pointer is empty")
+	assertion.True(Empty(mockT, tiNP), "time.Time is empty")
+	assertion.True(Empty(mockT, TStruct{}), "struct with zero values is empty")
+	assertion.True(Empty(mockT, TString("")), "empty aliased string is empty")
+	assertion.True(Empty(mockT, sP), "ptr to nil value is empty")
 
-	False(t, Empty(mockT, "something"), "Non Empty string is not empty")
-	False(t, Empty(mockT, errors.New("something")), "Non nil object is not empty")
-	False(t, Empty(mockT, []string{"something"}), "Non empty string array is not empty")
-	False(t, Empty(mockT, 1), "Non-zero int value is not empty")
-	False(t, Empty(mockT, true), "True value is not empty")
-	False(t, Empty(mockT, chWithValue), "Channel with values is not empty")
-	False(t, Empty(mockT, TStruct{x: 1}), "struct with initialized values is empty")
-	False(t, Empty(mockT, TString("abc")), "non-empty aliased string is empty")
-	False(t, Empty(mockT, xP), "ptr to non-nil value is not empty")
+	assertion.False(Empty(mockT, "something"), "Non Empty string is not empty")
+	assertion.False(Empty(mockT, errors.New("something")), "Non nil object is not empty")
+	assertion.False(Empty(mockT, []string{"something"}), "Non empty string array is not empty")
+	assertion.False(Empty(mockT, 1), "Non-zero int value is not empty")
+	assertion.False(Empty(mockT, true), "True value is not empty")
+	assertion.False(Empty(mockT, chWithValue), "Channel with values is not empty")
+	assertion.False(Empty(mockT, TStruct{x: 1}), "struct with initialized values is empty")
+	assertion.False(Empty(mockT, TString("abc")), "non-empty aliased string is empty")
+	assertion.False(Empty(mockT, xP), "ptr to non-nil value is not empty")
 }
 
 func TestNotEmpty(t *testing.T) {
-
 	mockT := new(testing.T)
+	assertion := New(t, FailNowOnFailure)
+
 	chWithValue := make(chan struct{}, 1)
 	chWithValue <- struct{}{}
 
-	False(t, NotEmpty(mockT, ""), "Empty string is empty")
-	False(t, NotEmpty(mockT, nil), "Nil is empty")
-	False(t, NotEmpty(mockT, []string{}), "Empty string array is empty")
-	False(t, NotEmpty(mockT, 0), "Zero int value is empty")
-	False(t, NotEmpty(mockT, false), "False value is empty")
-	False(t, NotEmpty(mockT, make(chan struct{})), "Channel without values is empty")
+	assertion.False(NotEmpty(mockT, ""), "Empty string is empty")
+	assertion.False(NotEmpty(mockT, nil), "Nil is empty")
+	assertion.False(NotEmpty(mockT, []string{}), "Empty string array is empty")
+	assertion.False(NotEmpty(mockT, 0), "Zero int value is empty")
+	assertion.False(NotEmpty(mockT, false), "False value is empty")
+	assertion.False(NotEmpty(mockT, make(chan struct{})), "Channel without values is empty")
 
-	True(t, NotEmpty(mockT, "something"), "Non Empty string is not empty")
-	True(t, NotEmpty(mockT, errors.New("something")), "Non nil object is not empty")
-	True(t, NotEmpty(mockT, []string{"something"}), "Non empty string array is not empty")
-	True(t, NotEmpty(mockT, 1), "Non-zero int value is not empty")
-	True(t, NotEmpty(mockT, true), "True value is not empty")
-	True(t, NotEmpty(mockT, chWithValue), "Channel with values is not empty")
+	assertion.True(NotEmpty(mockT, "something"), "Non Empty string is not empty")
+	assertion.True(NotEmpty(mockT, errors.New("something")), "Non nil object is not empty")
+	assertion.True(NotEmpty(mockT, []string{"something"}), "Non empty string array is not empty")
+	assertion.True(NotEmpty(mockT, 1), "Non-zero int value is not empty")
+	assertion.True(NotEmpty(mockT, true), "True value is not empty")
+	assertion.True(NotEmpty(mockT, chWithValue), "Channel with values is not empty")
 }
 
 func Test_getLen(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	falseCases := []any{
 		nil,
 		0,
@@ -1213,7 +1224,7 @@ func Test_getLen(t *testing.T) {
 	}
 	for _, v := range falseCases {
 		ok, l := getLen(v)
-		False(t, ok, "Expected getLen fail to get length of %#v", v)
+		assertion.False(ok, "Expected getLen fail to get length of %#v", v)
 		Equal(t, 0, l, "getLen should return 0 for %#v", v)
 	}
 
@@ -1242,20 +1253,21 @@ func Test_getLen(t *testing.T) {
 
 	for _, c := range trueCases {
 		ok, l := getLen(c.v)
-		True(t, ok, "Expected getLen success to get length of %#v", c.v)
+		assertion.True(ok, "Expected getLen success to get length of %#v", c.v)
 		Equal(t, c.l, l)
 	}
 }
 
 func TestLen(t *testing.T) {
 	mockT := new(testing.T)
+	assertion := New(t, FailNowOnFailure)
 
-	False(t, Len(mockT, nil, 0), "nil does not have length")
-	False(t, Len(mockT, 0, 0), "int does not have length")
-	False(t, Len(mockT, true, 0), "true does not have length")
-	False(t, Len(mockT, false, 0), "false does not have length")
-	False(t, Len(mockT, 'A', 0), "Rune does not have length")
-	False(t, Len(mockT, struct{}{}, 0), "Struct does not have length")
+	assertion.False(Len(mockT, nil, 0), "nil does not have length")
+	assertion.False(Len(mockT, 0, 0), "int does not have length")
+	assertion.False(Len(mockT, true, 0), "true does not have length")
+	assertion.False(Len(mockT, false, 0), "false does not have length")
+	assertion.False(Len(mockT, 'A', 0), "Rune does not have length")
+	assertion.False(Len(mockT, struct{}{}, 0), "Struct does not have length")
 
 	ch := make(chan int, 5)
 	ch <- 1
@@ -1282,7 +1294,7 @@ func TestLen(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		True(t, Len(mockT, c.v, c.l), "%#v have %d items", c.v, c.l)
+		assertion.True(Len(mockT, c.v, c.l), "%#v have %d items", c.v, c.l)
 	}
 
 	cases = []struct {
@@ -1305,41 +1317,42 @@ func TestLen(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		False(t, Len(mockT, c.v, c.l), "%#v have %d items", c.v, c.l)
+		assertion.False(Len(mockT, c.v, c.l), "%#v have %d items", c.v, c.l)
 	}
 }
 
 func TestWithinDuration(t *testing.T) {
-
 	mockT := new(testing.T)
+	assertion := New(t, FailNowOnFailure)
 	a := time.Now()
 	b := a.Add(10 * time.Second)
 
-	True(t, WithinDuration(mockT, a, b, 10*time.Second), "A 10s difference is within a 10s time difference")
-	True(t, WithinDuration(mockT, b, a, 10*time.Second), "A 10s difference is within a 10s time difference")
+	assertion.True(WithinDuration(mockT, a, b, 10*time.Second), "A 10s difference is within a 10s time difference")
+	assertion.True(WithinDuration(mockT, b, a, 10*time.Second), "A 10s difference is within a 10s time difference")
 
-	False(t, WithinDuration(mockT, a, b, 9*time.Second), "A 10s difference is not within a 9s time difference")
-	False(t, WithinDuration(mockT, b, a, 9*time.Second), "A 10s difference is not within a 9s time difference")
+	assertion.False(WithinDuration(mockT, a, b, 9*time.Second), "A 10s difference is not within a 9s time difference")
+	assertion.False(WithinDuration(mockT, b, a, 9*time.Second), "A 10s difference is not within a 9s time difference")
 
-	False(t, WithinDuration(mockT, a, b, -9*time.Second), "A 10s difference is not within a 9s time difference")
-	False(t, WithinDuration(mockT, b, a, -9*time.Second), "A 10s difference is not within a 9s time difference")
+	assertion.False(WithinDuration(mockT, a, b, -9*time.Second), "A 10s difference is not within a 9s time difference")
+	assertion.False(WithinDuration(mockT, b, a, -9*time.Second), "A 10s difference is not within a 9s time difference")
 
-	False(t, WithinDuration(mockT, a, b, -11*time.Second), "A 10s difference is not within a 9s time difference")
-	False(t, WithinDuration(mockT, b, a, -11*time.Second), "A 10s difference is not within a 9s time difference")
+	assertion.False(WithinDuration(mockT, a, b, -11*time.Second), "A 10s difference is not within a 9s time difference")
+	assertion.False(WithinDuration(mockT, b, a, -11*time.Second), "A 10s difference is not within a 9s time difference")
 }
 
 func TestInDelta(t *testing.T) {
 	mockT := new(testing.T)
+	assertion := New(t, FailNowOnFailure)
 
-	True(t, InDelta(mockT, 1.001, 1, 0.01), "|1.001 - 1| <= 0.01")
-	True(t, InDelta(mockT, 1, 1.001, 0.01), "|1 - 1.001| <= 0.01")
-	True(t, InDelta(mockT, 1, 2, 1), "|1 - 2| <= 1")
-	False(t, InDelta(mockT, 1, 2, 0.5), "Expected |1 - 2| <= 0.5 to fail")
-	False(t, InDelta(mockT, 2, 1, 0.5), "Expected |2 - 1| <= 0.5 to fail")
-	False(t, InDelta(mockT, "", nil, 1), "Expected non numerals to fail")
-	False(t, InDelta(mockT, 42, math.NaN(), 0.01), "Expected NaN for actual to fail")
-	False(t, InDelta(mockT, math.NaN(), 42, 0.01), "Expected NaN for expected to fail")
-	True(t, InDelta(mockT, math.NaN(), math.NaN(), 0.01), "Expected NaN for both to pass")
+	assertion.True(InDelta(mockT, 1.001, 1, 0.01), "|1.001 - 1| <= 0.01")
+	assertion.True(InDelta(mockT, 1, 1.001, 0.01), "|1 - 1.001| <= 0.01")
+	assertion.True(InDelta(mockT, 1, 2, 1), "|1 - 2| <= 1")
+	assertion.False(InDelta(mockT, 1, 2, 0.5), "Expected |1 - 2| <= 0.5 to fail")
+	assertion.False(InDelta(mockT, 2, 1, 0.5), "Expected |2 - 1| <= 0.5 to fail")
+	assertion.False(InDelta(mockT, "", nil, 1), "Expected non numerals to fail")
+	assertion.False(InDelta(mockT, 42, math.NaN(), 0.01), "Expected NaN for actual to fail")
+	assertion.False(InDelta(mockT, math.NaN(), 42, 0.01), "Expected NaN for expected to fail")
+	assertion.True(InDelta(mockT, math.NaN(), math.NaN(), 0.01), "Expected NaN for both to pass")
 
 	cases := []struct {
 		a, b  any
@@ -1362,39 +1375,41 @@ func TestInDelta(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		True(t, InDelta(mockT, tc.a, tc.b, tc.delta), "Expected |%V - %V| <= %v", tc.a, tc.b, tc.delta)
+		assertion.True(InDelta(mockT, tc.a, tc.b, tc.delta), "Expected |%V - %V| <= %v", tc.a, tc.b, tc.delta)
 	}
 }
 
 func TestInDeltaSlice(t *testing.T) {
 	mockT := new(testing.T)
+	assertion := New(t, FailNowOnFailure)
 
-	True(t, InDeltaSlice(mockT,
+	assertion.True(InDeltaSlice(mockT,
 		[]float64{1.001, math.NaN(), 0.999},
 		[]float64{1, math.NaN(), 1},
 		0.1), "{1.001, NaN, 0.009} is element-wise close to {1, NaN, 1} in delta=0.1")
 
-	True(t, InDeltaSlice(mockT,
+	assertion.True(InDeltaSlice(mockT,
 		[]float64{1, math.NaN(), 2},
 		[]float64{0, math.NaN(), 3},
 		1), "{1, NaN, 2} is element-wise close to {0, NaN, 3} in delta=1")
 
-	False(t, InDeltaSlice(mockT,
+	assertion.False(InDeltaSlice(mockT,
 		[]float64{1, math.NaN(), 2},
 		[]float64{0, math.NaN(), 3},
 		0.1), "{1, NaN, 2} is not element-wise close to {0, NaN, 3} in delta=0.1")
 
-	False(t, InDeltaSlice(mockT, "", nil, 1), "Expected non numeral slices to fail")
+	assertion.False(InDeltaSlice(mockT, "", nil, 1), "Expected non numeral slices to fail")
 }
 
 func TestInDeltaMapValues(t *testing.T) {
 	mockT := new(testing.T)
+	assertion := New(t, FailNowOnFailure)
 
 	for _, tc := range []struct {
 		title  string
 		expect any
 		actual any
-		f      func(TestingT, bool, ...any) bool
+		f      func(bool, ...any)
 		delta  float64
 	}{
 		{
@@ -1410,7 +1425,7 @@ func TestInDeltaMapValues(t *testing.T) {
 				"baz": math.NaN(),
 			},
 			delta: 0.1,
-			f:     True,
+			f:     assertion.True,
 		},
 		{
 			title: "Within delta",
@@ -1423,7 +1438,7 @@ func TestInDeltaMapValues(t *testing.T) {
 				2: 1.99,
 			},
 			delta: 0.1,
-			f:     True,
+			f:     assertion.True,
 		},
 		{
 			title: "Different number of keys",
@@ -1435,7 +1450,7 @@ func TestInDeltaMapValues(t *testing.T) {
 				1: 1.0,
 			},
 			delta: 0.1,
-			f:     False,
+			f:     assertion.False,
 		},
 		{
 			title: "Within delta with zero value",
@@ -1446,7 +1461,7 @@ func TestInDeltaMapValues(t *testing.T) {
 				"zero": 0,
 			},
 			delta: 0.1,
-			f:     True,
+			f:     assertion.True,
 		},
 		{
 			title: "With missing key with zero value",
@@ -1458,15 +1473,16 @@ func TestInDeltaMapValues(t *testing.T) {
 				"zero": 0,
 				"bar":  0,
 			},
-			f: False,
+			f: assertion.False,
 		},
 	} {
-		tc.f(t, InDeltaMapValues(mockT, tc.expect, tc.actual, tc.delta), tc.title+"\n"+diff(tc.expect, tc.actual))
+		tc.f(InDeltaMapValues(mockT, tc.expect, tc.actual, tc.delta), tc.title+"\n"+diff(tc.expect, tc.actual))
 	}
 }
 
 func TestInEpsilon(t *testing.T) {
 	mockT := new(testing.T)
+	assertion := New(t, FailNowOnFailure)
 
 	cases := []struct {
 		a, b    any
@@ -1485,7 +1501,7 @@ func TestInEpsilon(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		True(t, InEpsilon(t, tc.a, tc.b, tc.epsilon, "Expected %V and %V to have a relative difference of %v", tc.a, tc.b, tc.epsilon), "test: %q", tc)
+		assertion.True(InEpsilon(t, tc.a, tc.b, tc.epsilon, "Expected %V and %V to have a relative difference of %v", tc.a, tc.b, tc.epsilon), "test: %q", tc)
 	}
 
 	cases = []struct {
@@ -1507,29 +1523,31 @@ func TestInEpsilon(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		False(t, InEpsilon(mockT, tc.a, tc.b, tc.epsilon, "Expected %V and %V to have a relative difference of %v", tc.a, tc.b, tc.epsilon))
+		assertion.False(InEpsilon(mockT, tc.a, tc.b, tc.epsilon, "Expected %V and %V to have a relative difference of %v", tc.a, tc.b, tc.epsilon))
 	}
 
 }
 
 func TestInEpsilonSlice(t *testing.T) {
 	mockT := new(testing.T)
+	assertion := New(t, FailNowOnFailure)
 
-	True(t, InEpsilonSlice(mockT,
+	assertion.True(InEpsilonSlice(mockT,
 		[]float64{2.2, math.NaN(), 2.0},
 		[]float64{2.1, math.NaN(), 2.1},
 		0.06), "{2.2, NaN, 2.0} is element-wise close to {2.1, NaN, 2.1} in espilon=0.06")
 
-	False(t, InEpsilonSlice(mockT,
+	assertion.False(InEpsilonSlice(mockT,
 		[]float64{2.2, 2.0},
 		[]float64{2.1, 2.1},
 		0.04), "{2.2, 2.0} is not element-wise close to {2.1, 2.1} in espilon=0.04")
 
-	False(t, InEpsilonSlice(mockT, "", nil, 1), "Expected non numeral slices to fail")
+	assertion.False(InEpsilonSlice(mockT, "", nil, 1), "Expected non numeral slices to fail")
 }
 
 func TestRegexp(t *testing.T) {
 	mockT := new(testing.T)
+	assertion := New(t, FailNowOnFailure)
 
 	cases := []struct {
 		rx, str string
@@ -1540,10 +1558,10 @@ func TestRegexp(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		True(t, Regexp(mockT, tc.rx, tc.str))
-		True(t, Regexp(mockT, regexp.MustCompile(tc.rx), tc.str))
-		False(t, NotRegexp(mockT, tc.rx, tc.str))
-		False(t, NotRegexp(mockT, regexp.MustCompile(tc.rx), tc.str))
+		assertion.True(Regexp(mockT, tc.rx, tc.str))
+		assertion.True(Regexp(mockT, regexp.MustCompile(tc.rx), tc.str))
+		assertion.False(NotRegexp(mockT, tc.rx, tc.str))
+		assertion.False(NotRegexp(mockT, regexp.MustCompile(tc.rx), tc.str))
 	}
 
 	cases = []struct {
@@ -1555,10 +1573,10 @@ func TestRegexp(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		False(t, Regexp(mockT, tc.rx, tc.str), "Expected \"%s\" to not match \"%s\"", tc.rx, tc.str)
-		False(t, Regexp(mockT, regexp.MustCompile(tc.rx), tc.str))
-		True(t, NotRegexp(mockT, tc.rx, tc.str))
-		True(t, NotRegexp(mockT, regexp.MustCompile(tc.rx), tc.str))
+		assertion.False(Regexp(mockT, tc.rx, tc.str), "Expected \"%s\" to not match \"%s\"", tc.rx, tc.str)
+		assertion.False(Regexp(mockT, regexp.MustCompile(tc.rx), tc.str))
+		assertion.True(NotRegexp(mockT, tc.rx, tc.str))
+		assertion.True(NotRegexp(mockT, regexp.MustCompile(tc.rx), tc.str))
 	}
 }
 
@@ -1584,37 +1602,41 @@ func TestCallerInfoWithAutogeneratedFunctions(t *testing.T) {
 
 func TestZero(t *testing.T) {
 	mockT := new(testing.T)
+	assertion := New(t, FailNowOnFailure)
 
 	for _, test := range zeros {
-		True(t, Zero(mockT, test, "%#v is not the %v zero value", test, reflect.TypeOf(test)))
+		assertion.True(Zero(mockT, test, "%#v is not the %v zero value", test, reflect.TypeOf(test)))
 	}
 
 	for _, test := range nonZeros {
-		False(t, Zero(mockT, test, "%#v is not the %v zero value", test, reflect.TypeOf(test)))
+		assertion.False(Zero(mockT, test, "%#v is not the %v zero value", test, reflect.TypeOf(test)))
 	}
 }
 
 func TestNotZero(t *testing.T) {
 	mockT := new(testing.T)
+	assertion := New(t, FailNowOnFailure)
 
 	for _, test := range zeros {
-		False(t, NotZero(mockT, test, "%#v is not the %v zero value", test, reflect.TypeOf(test)))
+		assertion.False(NotZero(mockT, test, "%#v is not the %v zero value", test, reflect.TypeOf(test)))
 	}
 
 	for _, test := range nonZeros {
-		True(t, NotZero(mockT, test, "%#v is not the %v zero value", test, reflect.TypeOf(test)))
+		assertion.True(NotZero(mockT, test, "%#v is not the %v zero value", test, reflect.TypeOf(test)))
 	}
 }
 
 func TestFileExists(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
+
 	mockT := new(testing.T)
-	True(t, FileExists(mockT, "assertions.go"))
+	assertion.True(FileExists(mockT, "assertions.go"))
 
 	mockT = new(testing.T)
-	False(t, FileExists(mockT, "random_file"))
+	assertion.False(FileExists(mockT, "random_file"))
 
 	mockT = new(testing.T)
-	False(t, FileExists(mockT, "../_codegen"))
+	assertion.False(FileExists(mockT, "../_codegen"))
 
 	var tempFiles []string
 
@@ -1624,7 +1646,7 @@ func TestFileExists(t *testing.T) {
 	}
 	tempFiles = append(tempFiles, link)
 	mockT = new(testing.T)
-	True(t, FileExists(mockT, link))
+	assertion.True(FileExists(mockT, link))
 
 	link, err = getTempSymlinkPath("non_existent_file")
 	if err != nil {
@@ -1632,7 +1654,7 @@ func TestFileExists(t *testing.T) {
 	}
 	tempFiles = append(tempFiles, link)
 	mockT = new(testing.T)
-	True(t, FileExists(mockT, link))
+	assertion.True(FileExists(mockT, link))
 
 	errs := cleanUpTempFiles(tempFiles)
 	if len(errs) > 0 {
@@ -1641,14 +1663,16 @@ func TestFileExists(t *testing.T) {
 }
 
 func TestNoFileExists(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
+
 	mockT := new(testing.T)
-	False(t, NoFileExists(mockT, "assertions.go"))
+	assertion.False(NoFileExists(mockT, "assertions.go"))
 
 	mockT = new(testing.T)
-	True(t, NoFileExists(mockT, "non_existent_file"))
+	assertion.True(NoFileExists(mockT, "non_existent_file"))
 
 	mockT = new(testing.T)
-	True(t, NoFileExists(mockT, "../_codegen"))
+	assertion.True(NoFileExists(mockT, "../_codegen"))
 
 	var tempFiles []string
 
@@ -1658,7 +1682,7 @@ func TestNoFileExists(t *testing.T) {
 	}
 	tempFiles = append(tempFiles, link)
 	mockT = new(testing.T)
-	False(t, NoFileExists(mockT, link))
+	assertion.False(NoFileExists(mockT, link))
 
 	link, err = getTempSymlinkPath("non_existent_file")
 	if err != nil {
@@ -1666,7 +1690,7 @@ func TestNoFileExists(t *testing.T) {
 	}
 	tempFiles = append(tempFiles, link)
 	mockT = new(testing.T)
-	False(t, NoFileExists(mockT, link))
+	assertion.False(NoFileExists(mockT, link))
 
 	errs := cleanUpTempFiles(tempFiles)
 	if len(errs) > 0 {
@@ -1692,14 +1716,16 @@ func cleanUpTempFiles(paths []string) []error {
 }
 
 func TestDirExists(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
+
 	mockT := new(testing.T)
-	False(t, DirExists(mockT, "assertions.go"))
+	assertion.False(DirExists(mockT, "assertions.go"))
 
 	mockT = new(testing.T)
-	False(t, DirExists(mockT, "non_existent_dir"))
+	assertion.False(DirExists(mockT, "non_existent_dir"))
 
 	mockT = new(testing.T)
-	True(t, DirExists(mockT, "."))
+	assertion.True(DirExists(mockT, "."))
 
 	var tempFiles []string
 
@@ -1709,7 +1735,7 @@ func TestDirExists(t *testing.T) {
 	}
 	tempFiles = append(tempFiles, link)
 	mockT = new(testing.T)
-	False(t, DirExists(mockT, link))
+	assertion.False(DirExists(mockT, link))
 
 	link, err = getTempSymlinkPath("non_existent_dir")
 	if err != nil {
@@ -1717,7 +1743,7 @@ func TestDirExists(t *testing.T) {
 	}
 	tempFiles = append(tempFiles, link)
 	mockT = new(testing.T)
-	False(t, DirExists(mockT, link))
+	assertion.False(DirExists(mockT, link))
 
 	errs := cleanUpTempFiles(tempFiles)
 	if len(errs) > 0 {
@@ -1726,14 +1752,16 @@ func TestDirExists(t *testing.T) {
 }
 
 func TestNoDirExists(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
+
 	mockT := new(testing.T)
-	True(t, NoDirExists(mockT, "assertions.go"))
+	assertion.True(NoDirExists(mockT, "assertions.go"))
 
 	mockT = new(testing.T)
-	True(t, NoDirExists(mockT, "non_existent_dir"))
+	assertion.True(NoDirExists(mockT, "non_existent_dir"))
 
 	mockT = new(testing.T)
-	False(t, NoDirExists(mockT, "."))
+	assertion.False(NoDirExists(mockT, "."))
 
 	var tempFiles []string
 
@@ -1743,7 +1771,7 @@ func TestNoDirExists(t *testing.T) {
 	}
 	tempFiles = append(tempFiles, link)
 	mockT = new(testing.T)
-	True(t, NoDirExists(mockT, link))
+	assertion.True(NoDirExists(mockT, link))
 
 	link, err = getTempSymlinkPath("non_existent_dir")
 	if err != nil {
@@ -1751,7 +1779,7 @@ func TestNoDirExists(t *testing.T) {
 	}
 	tempFiles = append(tempFiles, link)
 	mockT = new(testing.T)
-	True(t, NoDirExists(mockT, link))
+	assertion.True(NoDirExists(mockT, link))
 
 	errs := cleanUpTempFiles(tempFiles)
 	if len(errs) > 0 {
@@ -1760,67 +1788,80 @@ func TestNoDirExists(t *testing.T) {
 }
 
 func TestJSONEq_EqualSONString(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	mockT := new(testing.T)
-	True(t, JSONEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`))
+	assertion.True(JSONEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`))
 }
 
 func TestJSONEq_EquivalentButNotEqual(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	mockT := new(testing.T)
-	True(t, JSONEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`))
+	assertion.True(JSONEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`))
 }
 
 func TestJSONEq_HashOfArraysAndHashes(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	mockT := new(testing.T)
-	True(t, JSONEq(mockT, "{\r\n\t\"numeric\": 1.5,\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]],\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\"\r\n}",
+	assertion.True(JSONEq(mockT, "{\r\n\t\"numeric\": 1.5,\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]],\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\"\r\n}",
 		"{\r\n\t\"numeric\": 1.5,\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\",\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]]\r\n}"))
 }
 
 func TestJSONEq_Array(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	mockT := new(testing.T)
-	True(t, JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`))
+	assertion.True(JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`))
 }
 
 func TestJSONEq_HashAndArrayNotEquivalent(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	mockT := new(testing.T)
-	False(t, JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`))
+	assertion.False(JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`))
 }
 
 func TestJSONEq_HashesNotEquivalent(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	mockT := new(testing.T)
-	False(t, JSONEq(mockT, `{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`))
+	assertion.False(JSONEq(mockT, `{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`))
 }
 
 func TestJSONEq_ActualIsNotJSON(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	mockT := new(testing.T)
-	False(t, JSONEq(mockT, `{"foo": "bar"}`, "Not JSON"))
+	assertion.False(JSONEq(mockT, `{"foo": "bar"}`, "Not JSON"))
 }
 
 func TestJSONEq_ExpectedIsNotJSON(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	mockT := new(testing.T)
-	False(t, JSONEq(mockT, "Not JSON", `{"foo": "bar", "hello": "world"}`))
+	assertion.False(JSONEq(mockT, "Not JSON", `{"foo": "bar", "hello": "world"}`))
 }
 
 func TestJSONEq_ExpectedAndActualNotJSON(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	mockT := new(testing.T)
-	False(t, JSONEq(mockT, "Not JSON", "Not JSON"))
+	assertion.False(JSONEq(mockT, "Not JSON", "Not JSON"))
 }
 
 func TestJSONEq_ArraysOfDifferentOrder(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	mockT := new(testing.T)
-	False(t, JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`))
+	assertion.False(JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`))
 }
 
 func TestYAMLEq_EqualYAMLString(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	mockT := new(testing.T)
-	True(t, YAMLEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`))
+	assertion.True(YAMLEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`))
 }
 
 func TestYAMLEq_EquivalentButNotEqual(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	mockT := new(testing.T)
-	True(t, YAMLEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`))
+	assertion.True(YAMLEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`))
 }
 
 func TestYAMLEq_HashOfArraysAndHashes(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	mockT := new(testing.T)
 	expected := `
 numeric: 1.5
@@ -1847,42 +1888,49 @@ array:
   - "string"
   - ["nested", "array", 5.5]
 `
-	True(t, YAMLEq(mockT, expected, actual))
+	assertion.True(YAMLEq(mockT, expected, actual))
 }
 
 func TestYAMLEq_Array(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	mockT := new(testing.T)
-	True(t, YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`))
+	assertion.True(YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`))
 }
 
 func TestYAMLEq_HashAndArrayNotEquivalent(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	mockT := new(testing.T)
-	False(t, YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`))
+	assertion.False(YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`))
 }
 
 func TestYAMLEq_HashesNotEquivalent(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	mockT := new(testing.T)
-	False(t, YAMLEq(mockT, `{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`))
+	assertion.False(YAMLEq(mockT, `{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`))
 }
 
 func TestYAMLEq_ActualIsSimpleString(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	mockT := new(testing.T)
-	False(t, YAMLEq(mockT, `{"foo": "bar"}`, "Simple String"))
+	assertion.False(YAMLEq(mockT, `{"foo": "bar"}`, "Simple String"))
 }
 
 func TestYAMLEq_ExpectedIsSimpleString(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	mockT := new(testing.T)
-	False(t, YAMLEq(mockT, "Simple String", `{"foo": "bar", "hello": "world"}`))
+	assertion.False(YAMLEq(mockT, "Simple String", `{"foo": "bar", "hello": "world"}`))
 }
 
 func TestYAMLEq_ExpectedAndActualSimpleString(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	mockT := new(testing.T)
-	True(t, YAMLEq(mockT, "Simple String", "Simple String"))
+	assertion.True(YAMLEq(mockT, "Simple String", "Simple String"))
 }
 
 func TestYAMLEq_ArraysOfDifferentOrder(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	mockT := new(testing.T)
-	False(t, YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`))
+	assertion.False(YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`))
 }
 
 type diffTestingStruct struct {
@@ -2100,9 +2148,10 @@ func (m *mockTestingT) FailNow() {
 }
 
 func TestFailNow(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	mockT := &mockTestingT{}
 	FailNow(mockT, "failed")
-	True(t, mockT.failed)
+	assertion.True(mockT.failed)
 }
 
 func TestBytesEqual(t *testing.T) {
@@ -2262,17 +2311,18 @@ func ExampleBoolAssertionFunc() {
 	tests := []struct {
 		name      string
 		arg       int
-		assertion BoolAssertionFunc
+		assertion func(*Assertions, bool, ...any)
 	}{
-		{"-1 is bad", -1, False},
-		{"42 is good", 42, True},
-		{"41 is bad", 41, False},
-		{"45 is cool", 45, True},
+		{"-1 is bad", -1, (*Assertions).False},
+		{"42 is good", 42, (*Assertions).True},
+		{"41 is bad", 41, (*Assertions).False},
+		{"45 is cool", 45, (*Assertions).True},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.assertion(t, isOkay(tt.arg))
+			assertion := New(t, FailNowOnFailure)
+			tt.assertion(assertion, isOkay(tt.arg))
 		})
 	}
 }
@@ -2281,15 +2331,16 @@ func TestBoolAssertionFunc(t *testing.T) {
 	tests := []struct {
 		name      string
 		value     bool
-		assertion BoolAssertionFunc
+		assertion func(*Assertions, bool, ...any)
 	}{
-		{"true", true, True},
-		{"false", false, False},
+		{"true", true, (*Assertions).True},
+		{"false", false, (*Assertions).False},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.assertion(t, tt.value)
+			assertion := New(t, FailNowOnFailure)
+			tt.assertion(assertion, tt.value)
 		})
 	}
 }
@@ -2338,16 +2389,18 @@ func TestErrorAssertionFunc(t *testing.T) {
 }
 
 func TestEventuallyFalse(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	mockT := new(testing.T)
 
 	condition := func() bool {
 		return false
 	}
 
-	False(t, Eventually(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
+	assertion.False(Eventually(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
 }
 
 func TestEventuallyTrue(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	state := 0
 	condition := func() bool {
 		defer func() {
@@ -2356,18 +2409,20 @@ func TestEventuallyTrue(t *testing.T) {
 		return state == 2
 	}
 
-	True(t, Eventually(t, condition, 100*time.Millisecond, 20*time.Millisecond))
+	assertion.True(Eventually(t, condition, 100*time.Millisecond, 20*time.Millisecond))
 }
 
 func TestNeverFalse(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	condition := func() bool {
 		return false
 	}
 
-	True(t, Never(t, condition, 100*time.Millisecond, 20*time.Millisecond))
+	assertion.True(Never(t, condition, 100*time.Millisecond, 20*time.Millisecond))
 }
 
 func TestNeverTrue(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	mockT := new(testing.T)
 	state := 0
 	condition := func() bool {
@@ -2377,15 +2432,16 @@ func TestNeverTrue(t *testing.T) {
 		return state == 2
 	}
 
-	False(t, Never(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
+	assertion.False(Never(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
 }
 
 func TestEventuallyIssue805(t *testing.T) {
+	assertion := New(t, FailNowOnFailure)
 	mockT := new(testing.T)
 
 	NotPanics(t, func() {
 		condition := func() bool { <-time.After(time.Millisecond); return true }
-		False(t, Eventually(mockT, condition, time.Millisecond, time.Microsecond))
+		assertion.False(Eventually(mockT, condition, time.Millisecond, time.Microsecond))
 	})
 }
 

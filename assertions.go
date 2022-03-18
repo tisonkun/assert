@@ -22,6 +22,25 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Assertions provides assertion methods around the TestingT interface.
+type Assertions struct {
+	t         TestingT
+	onFailure func(TestingT)
+}
+
+// FailNowOnFailure calls TestingT.FailNow on assertion failure.
+var FailNowOnFailure = func(t TestingT) {
+	t.FailNow()
+}
+
+// New makes a new Assertions object for the specified TestingT.
+func New(t TestingT, onFailure func(TestingT)) *Assertions {
+	return &Assertions{
+		t:         t,
+		onFailure: onFailure,
+	}
+}
+
 // TestingT is an interface wrapper around *testing.T
 type TestingT interface {
 	Errorf(format string, args ...any)
@@ -35,10 +54,6 @@ type ComparisonAssertionFunc func(TestingT, any, any, ...any) bool
 // ValueAssertionFunc is a common function prototype when validating a single value.  Can be useful
 // for table driven tests.
 type ValueAssertionFunc func(TestingT, any, ...any) bool
-
-// BoolAssertionFunc is a common function prototype when validating a bool value.  Can be useful
-// for table driven tests.
-type BoolAssertionFunc func(TestingT, bool, ...any) bool
 
 // ErrorAssertionFunc is a common function prototype when validating an error value.  Can be useful
 // for table driven tests.
@@ -220,6 +235,11 @@ func FailNow(t TestingT, failureMessage string, msgAndArgs ...any) bool {
 	Fail(t, failureMessage, msgAndArgs...)
 	t.FailNow()
 	return false
+}
+
+func (a *Assertions) Fail(failureMessage string, msgAndArgs ...any) {
+	Fail(a.t, failureMessage, msgAndArgs...)
+	a.onFailure(a.t)
 }
 
 // Fail reports a failure through
@@ -632,33 +652,23 @@ func Len(t TestingT, object any, length int, msgAndArgs ...any) bool {
 }
 
 // True asserts that the specified value is true.
-//
-//    assert.True(t, myBool)
-func True(t TestingT, value bool, msgAndArgs ...any) bool {
+func (a *Assertions) True(value bool, msgAndArgs ...any) {
 	if !value {
-		if h, ok := t.(tHelper); ok {
+		if h, ok := a.t.(tHelper); ok {
 			h.Helper()
 		}
-		return Fail(t, "Should be true", msgAndArgs...)
+		a.Fail("Should be true", msgAndArgs...)
 	}
-
-	return true
-
 }
 
 // False asserts that the specified value is false.
-//
-//    assert.False(t, myBool)
-func False(t TestingT, value bool, msgAndArgs ...any) bool {
+func (a *Assertions) False(value bool, msgAndArgs ...any) {
 	if value {
-		if h, ok := t.(tHelper); ok {
+		if h, ok := a.t.(tHelper); ok {
 			h.Helper()
 		}
-		return Fail(t, "Should be false", msgAndArgs...)
+		a.Fail("Should be false", msgAndArgs...)
 	}
-
-	return true
-
 }
 
 // NotEqual asserts that the specified values are NOT equal.
