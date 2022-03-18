@@ -14,6 +14,8 @@ The `Assert` package servers as a supplement of Golang's `testing` for convenien
 * `suite` can be simply implemented leveraging [Golang's Subtests](https://go.dev/blog/subtests).
 * `mock` is not a good practice as it's hard to sync logics between the mock and the real object.
 
+**Currently, it's under the bootstrap development writing all assertions with `*Assertion` receiver so that we don't have to have `assert` and `require` separately as testify does.**
+
 ## Copyright & License
 
 The bundle itself is licensed under the [Apache License](LICENSE).
