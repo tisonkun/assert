@@ -912,9 +912,15 @@ func TestCondition(t *testing.T) {
 }
 
 func TestDidPanic(t *testing.T) {
-	if funcDidPanic, _, _ := didPanic(func() {
+	if funcDidPanic, msg, _ := didPanic(func() {
+		panic(nil)
+	}); !funcDidPanic || msg != nil {
+		t.Error("didPanic should return true")
+	}
+
+	if funcDidPanic, msg, _ := didPanic(func() {
 		panic("Panic!")
-	}); !funcDidPanic {
+	}); !funcDidPanic || msg != "Panic!" {
 		t.Error("didPanic should return true")
 	}
 
@@ -942,6 +948,12 @@ func TestPanics(t *testing.T) {
 
 func TestPanicsWithValue(t *testing.T) {
 	mockAssertion := NewWithOnFailureNoop(new(testing.T))
+
+	if !mockAssertion.PanicsWithValue(nil, func() {
+		panic(nil)
+	}) {
+		t.Error("PanicsWithValue should return true")
+	}
 
 	if !mockAssertion.PanicsWithValue("Panic!", func() {
 		panic("Panic!")

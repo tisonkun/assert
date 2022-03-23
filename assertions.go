@@ -945,25 +945,21 @@ func (a *Assertions) Condition(comp Comparison, msgAndArgs ...any) bool {
 type PanicTestFunc func()
 
 // didPanic returns true if the function passed to it panics. Otherwise, it returns false.
-func didPanic(f PanicTestFunc) (bool, any, string) {
-	didPanic := false
-	var message any
-	var stack string
-	func() {
+func didPanic(f PanicTestFunc) (didPanic bool, message any, stack string) {
+	didPanic = true
 
-		defer func() {
-			if message = recover(); message != nil {
-				didPanic = true
-				stack = string(debug.Stack())
-			}
-		}()
-
-		// call the target function
-		f()
-
+	defer func() {
+		message = recover()
+		if didPanic {
+			stack = string(debug.Stack())
+		}
 	}()
 
-	return didPanic, message, stack
+	// call the target function
+	f()
+	didPanic = false
+
+	return
 }
 
 // Panics asserts that the code inside the specified PanicTestFunc panics.
