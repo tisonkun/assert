@@ -425,7 +425,7 @@ func containsValue(values []CompareType, value CompareType) bool {
 	return false
 }
 
-// Wrapper around reflect.Value.CanConvert, for compatability
+// Wrapper around reflect.Value.CanConvert, for compatibility
 // reasons.
 func canConvert(value reflect.Value, to reflect.Type) bool {
 	return value.CanConvert(to)
