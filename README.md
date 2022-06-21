@@ -4,9 +4,8 @@
 
 This package is heavily inspired from [stretchr/testify](https://github.com/stretchr/testify), and you can regard it as a fork of the upstream repository.
 
-As the upstream repository stopped to make new releases since Jan 13, 2021, this package extracts all assertions and republish them with new ones including:
+This package extracts all assertions and republish them with new ones including:
 
-* `(*Assertion).ErrorContains`
 * `(*Assertion).ErrorRegexp`
 
 The `Assert` package servers as a supplement of Golang's `testing` for convenient assertions. And thus I don't want to implement anything like `suite` or `mock`.
