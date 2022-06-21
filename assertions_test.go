@@ -1135,7 +1135,7 @@ func TestIsEmpty(t *testing.T) {
 	assertion.False(isEmpty(true))
 	assertion.False(isEmpty(map[string]string{"Hello": "World"}))
 	assertion.False(isEmpty(chWithValue))
-
+	assertion.False(isEmpty([1]int{42}))
 }
 
 func TestEmpty(t *testing.T) {
@@ -1169,6 +1169,7 @@ func TestEmpty(t *testing.T) {
 	New(t).True(mockAssertion.Empty(TStruct{}), "struct with zero values is empty")
 	New(t).True(mockAssertion.Empty(TString("")), "empty aliased string is empty")
 	New(t).True(mockAssertion.Empty(sP), "ptr to nil value is empty")
+	New(t).True(mockAssertion.Empty([1]int{}), "array is state")
 
 	New(t).False(mockAssertion.Empty("something"), "Non Empty string is not empty")
 	New(t).False(mockAssertion.Empty(errors.New("something")), "Non nil object is not empty")
@@ -1179,6 +1180,7 @@ func TestEmpty(t *testing.T) {
 	New(t).False(mockAssertion.Empty(TStruct{x: 1}), "struct with initialized values is empty")
 	New(t).False(mockAssertion.Empty(TString("abc")), "non-empty aliased string is empty")
 	New(t).False(mockAssertion.Empty(xP), "ptr to non-nil value is not empty")
+	New(t).False(mockAssertion.Empty([1]int{42}), "array is not state")
 }
 
 func TestNotEmpty(t *testing.T) {
@@ -1193,6 +1195,7 @@ func TestNotEmpty(t *testing.T) {
 	New(t).False(mockAssertion.NotEmpty(0), "Zero int value is empty")
 	New(t).False(mockAssertion.NotEmpty(false), "False value is empty")
 	New(t).False(mockAssertion.NotEmpty(make(chan struct{})), "Channel without values is empty")
+	New(t).False(mockAssertion.NotEmpty([1]int{}), "array is state")
 
 	New(t).True(mockAssertion.NotEmpty("something"), "Non Empty string is not empty")
 	New(t).True(mockAssertion.NotEmpty(errors.New("something")), "Non nil object is not empty")
@@ -1200,6 +1203,7 @@ func TestNotEmpty(t *testing.T) {
 	New(t).True(mockAssertion.NotEmpty(1), "Non-zero int value is not empty")
 	New(t).True(mockAssertion.NotEmpty(true), "True value is not empty")
 	New(t).True(mockAssertion.NotEmpty(chWithValue), "Channel with values is not empty")
+	New(t).True(mockAssertion.NotEmpty([1]int{42}), "array is not state")
 }
 
 func TestGetLen(t *testing.T) {
