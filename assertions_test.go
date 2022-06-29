@@ -1331,6 +1331,25 @@ func TestWithinDuration(t *testing.T) {
 	New(t).False(mockAssertion.WithinDuration(b, a, -11*time.Second), "A 10s difference is not within a 9s time difference")
 }
 
+func TestWithinTimeRange(t *testing.T) {
+	mockAssertion := NewWithOnFailureNoop(new(testing.T))
+
+	n := time.Now()
+	s := n.Add(-time.Second)
+	e := n.Add(time.Second)
+
+	New(t).True(mockAssertion.WithinTimeRange(n, n, n), "Exact same actual, start, and end values return true")
+
+	New(t).True(mockAssertion.WithinTimeRange(n, s, e), "Time in range is within the time range")
+	New(t).True(mockAssertion.WithinTimeRange(s, s, e), "The start time is within the time range")
+	New(t).True(mockAssertion.WithinTimeRange(e, s, e), "The end time is within the time range")
+
+	New(t).False(mockAssertion.WithinTimeRange(s.Add(-time.Nanosecond), s, e, "Just before the start time is not within the time range"))
+	New(t).False(mockAssertion.WithinTimeRange(e.Add(time.Nanosecond), s, e, "Just after the end time is not within the time range"))
+
+	New(t).False(mockAssertion.WithinTimeRange(n, e, s, "Just after the end time is not within the time range"))
+}
+
 func TestInDelta(t *testing.T) {
 	mockAssertion := NewWithOnFailureNoop(new(testing.T))
 
