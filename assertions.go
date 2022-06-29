@@ -678,7 +678,6 @@ func (a *Assertions) NotEqualValues(expected, actual any, msgAndArgs ...any) boo
 // return (true, false) if element was not found.
 // return (true, true) if element was found.
 func containsElement(list any, element any) (ok, found bool) {
-
 	listValue := reflect.ValueOf(list)
 	listType := reflect.TypeOf(list)
 	if listType == nil {
@@ -752,17 +751,16 @@ func (a *Assertions) NotContains(s, contains any, msgAndArgs ...any) bool {
 	return true
 }
 
-// Subset asserts that the specified list(array, slice...) contains all
-// elements given in the specified subset(array, slice...).
+// Subset asserts that the specified list(array, slice, map...) contains all
+// elements given in the specified subset(array, slice, map...).
 func (a *Assertions) Subset(list, subset any, msgAndArgs ...any) (ok bool) {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 	if subset == nil {
-		return true // we consider nil to be equal to the nil set
+		return true // we consider nil to be equal to the nil list
 	}
 
-	subsetValue := reflect.ValueOf(subset)
 	defer func() {
 		if e := recover(); e != nil {
 			ok = false
@@ -772,22 +770,46 @@ func (a *Assertions) Subset(list, subset any, msgAndArgs ...any) (ok bool) {
 	listKind := reflect.TypeOf(list).Kind()
 	subsetKind := reflect.TypeOf(subset).Kind()
 
-	if listKind != reflect.Array && listKind != reflect.Slice {
+	if listKind != reflect.Array && listKind != reflect.Slice && listKind != reflect.Map {
 		return a.Fail(fmt.Sprintf("%q has an unsupported type %s", list, listKind), msgAndArgs...)
 	}
 
-	if subsetKind != reflect.Array && subsetKind != reflect.Slice {
+	if subsetKind != reflect.Array && subsetKind != reflect.Slice && listKind != reflect.Map {
 		return a.Fail(fmt.Sprintf("%q has an unsupported type %s", subset, subsetKind), msgAndArgs...)
 	}
 
-	for i := 0; i < subsetValue.Len(); i++ {
-		element := subsetValue.Index(i).Interface()
-		ok, found := containsElement(list, element)
-		if !ok {
-			return a.Fail(fmt.Sprintf("\"%s\" could not be applied builtin len()", list), msgAndArgs...)
+	subsetValue := reflect.ValueOf(subset)
+
+	switch listKind {
+	case reflect.Map:
+		if subsetKind != reflect.Map {
+			return a.Fail(fmt.Sprintf("%q has imcompatible type %s from %q with type %s", subset, subsetKind, list, listKind), msgAndArgs...)
 		}
-		if !found {
-			return a.Fail(fmt.Sprintf("\"%s\" does not contain \"%s\"", list, element), msgAndArgs...)
+		subsetKeys := subsetValue.MapKeys()
+		for i := 0; i < len(subsetKeys); i++ {
+			element := subsetKeys[i].Interface()
+			ok, found := containsElement(list, element)
+			if !ok {
+				return a.Fail(fmt.Sprintf("\"%s\" could not be applied builtin len()", list), msgAndArgs...)
+			}
+			if !found {
+				return a.Fail(fmt.Sprintf("\"%s\" does not contain \"%s\"", list, element), msgAndArgs...)
+			}
+		}
+	case reflect.Array:
+	case reflect.Slice:
+		if subsetKind != reflect.Array && subsetKind != reflect.Slice {
+			return a.Fail(fmt.Sprintf("%q has imcompatible type %s from %q with type %s", subset, subsetKind, list, listKind), msgAndArgs...)
+		}
+		for i := 0; i < subsetValue.Len(); i++ {
+			element := subsetValue.Index(i).Interface()
+			ok, found := containsElement(list, element)
+			if !ok {
+				return a.Fail(fmt.Sprintf("\"%s\" could not be applied builtin len()", list), msgAndArgs...)
+			}
+			if !found {
+				return a.Fail(fmt.Sprintf("\"%s\" does not contain \"%s\"", list, element), msgAndArgs...)
+			}
 		}
 	}
 
@@ -804,7 +826,6 @@ func (a *Assertions) NotSubset(list, subset any, msgAndArgs ...any) (ok bool) {
 		return a.Fail("nil is the empty set which is a subset of every set", msgAndArgs...)
 	}
 
-	subsetValue := reflect.ValueOf(subset)
 	defer func() {
 		if e := recover(); e != nil {
 			ok = false
@@ -814,22 +835,46 @@ func (a *Assertions) NotSubset(list, subset any, msgAndArgs ...any) (ok bool) {
 	listKind := reflect.TypeOf(list).Kind()
 	subsetKind := reflect.TypeOf(subset).Kind()
 
-	if listKind != reflect.Array && listKind != reflect.Slice {
+	if listKind != reflect.Array && listKind != reflect.Slice && listKind != reflect.Map {
 		return a.Fail(fmt.Sprintf("%q has an unsupported type %s", list, listKind), msgAndArgs...)
 	}
 
-	if subsetKind != reflect.Array && subsetKind != reflect.Slice {
+	if subsetKind != reflect.Array && subsetKind != reflect.Slice && listKind != reflect.Map {
 		return a.Fail(fmt.Sprintf("%q has an unsupported type %s", subset, subsetKind), msgAndArgs...)
 	}
 
-	for i := 0; i < subsetValue.Len(); i++ {
-		element := subsetValue.Index(i).Interface()
-		ok, found := containsElement(list, element)
-		if !ok {
-			return a.Fail(fmt.Sprintf("\"%s\" could not be applied builtin len()", list), msgAndArgs...)
+	subsetValue := reflect.ValueOf(subset)
+
+	switch listKind {
+	case reflect.Map:
+		if subsetKind != reflect.Map {
+			return a.Fail(fmt.Sprintf("%q has imcompatible type %s from %q with type %s", subset, subsetKind, list, listKind), msgAndArgs...)
 		}
-		if !found {
-			return true
+		subsetKeys := subsetValue.MapKeys()
+		for i := 0; i < len(subsetKeys); i++ {
+			element := subsetKeys[i].Interface()
+			ok, found := containsElement(list, element)
+			if !ok {
+				return a.Fail(fmt.Sprintf("\"%s\" could not be applied builtin len()", list), msgAndArgs...)
+			}
+			if !found {
+				return true
+			}
+		}
+	case reflect.Array:
+	case reflect.Slice:
+		if subsetKind != reflect.Array && subsetKind != reflect.Slice {
+			return a.Fail(fmt.Sprintf("%q has imcompatible type %s from %q with type %s", subset, subsetKind, list, listKind), msgAndArgs...)
+		}
+		for i := 0; i < subsetValue.Len(); i++ {
+			element := subsetValue.Index(i).Interface()
+			ok, found := containsElement(list, element)
+			if !ok {
+				return a.Fail(fmt.Sprintf("\"%s\" could not be applied builtin len()", list), msgAndArgs...)
+			}
+			if !found {
+				return true
+			}
 		}
 	}
 
