@@ -28,6 +28,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"unsafe"
 )
 
 func NewWithOnFailureNoop(t TestingT) *Assertions {
@@ -2226,5 +2227,12 @@ func TestErrorAs(t *testing.T) {
 		t.Run(fmt.Sprintf("ErrorAs(%#v,%#v)", tt.err, target), func(t *testing.T) {
 			New(t).Equal(tt.result, mockAssertion.ErrorAs(tt.err, &target))
 		})
+	}
+}
+
+func TestIsNil(t *testing.T) {
+	var n unsafe.Pointer = nil
+	if !isNil(n) {
+		t.Fatal("fail")
 	}
 }

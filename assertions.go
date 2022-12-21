@@ -517,7 +517,7 @@ func isNil(object any) bool {
 		[]reflect.Kind{
 			reflect.Chan, reflect.Func,
 			reflect.Interface, reflect.Map,
-			reflect.Ptr, reflect.Slice},
+			reflect.Ptr, reflect.Slice, reflect.UnsafePointer},
 		kind)
 
 	if isNilableKind && value.IsNil() {
